@@ -94,7 +94,7 @@
     -webkit-tap-highlight-color:transparent;
   }
   .brand .mark{
-    font-family:var(--mono); font-weight:700; font-size:18px;
+    font-family:var(--mono); font-weight:700; font-size:26px;
     letter-spacing:0.02em; color:#FFFFFF;
   }
   .brand .mark::after{content:"."; color:var(--amber);}
@@ -682,7 +682,6 @@
   <div class="top-inner">
     <button id="installBtn" class="brand" type="button">
       <span class="mark">LATIH</span>
-      <span class="sub" id="brandSub">log praktik harian</span>
       <svg class="install-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
     </button>
     <div class="streak-widget">
@@ -2602,13 +2601,10 @@
   }
 
   var installBtn = document.getElementById('installBtn');
-  var brandSub = document.getElementById('brandSub');
-  var brandSubDefault = brandSub ? brandSub.textContent : '';
   var deferredPrompt = null;
 
   function setInstallable(on){
     installBtn.classList.toggle('installable', on);
-    if(brandSub){ brandSub.textContent = on ? 'Ketuk utk instal' : brandSubDefault; }
   }
 
   // 0) Kalau app udah dibuka dalam mode terinstal (standalone), tombol instal
