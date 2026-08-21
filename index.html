@@ -2085,6 +2085,7 @@
   var sheetEyebrow = document.getElementById('sheetEyebrow');
   var sheetBody = document.getElementById('sheetBody');
   var activeObjectUrl = null;
+  var sheetPushedState = false;
 
   function statusLabel(status){
     if(status === 'ok') return '<span class="sheet-status ok">tidak ada koreksi</span>';
@@ -2097,6 +2098,7 @@
 
   function openDetail(scope, idx){
     var html = '', title = '', eyebrow = '';
+    var wasOpen = overlay.classList.contains('show');
     currentDetailScope = scope; currentDetailIdx = idx;
     if(activeObjectUrl){ URL.revokeObjectURL(activeObjectUrl); activeObjectUrl = null; }
     if(scope === 'ketik'){
@@ -2147,16 +2149,29 @@
     sheetBody.innerHTML = html;
     overlay.classList.add('show');
     document.body.style.overflow = 'hidden';
+    // Selipkan 1 langkah history khusus buat sheet ini, biar tombol back
+    // (fisik/gesture) cuma nutup sheet dulu, bukan langsung keluar app/panel.
+    if(!wasOpen){
+      try{ history.pushState({latihSheet:true}, ''); }catch(e){}
+      sheetPushedState = true;
+    }
   }
-  function closeDetail(){
+  function closeDetail(fromPopstate){
     overlay.classList.remove('show');
     document.body.style.overflow = '';
     if(activeObjectUrl){ URL.revokeObjectURL(activeObjectUrl); activeObjectUrl = null; }
     currentDetailScope = null; currentDetailIdx = null;
+    if(sheetPushedState){
+      sheetPushedState = false;
+      if(!fromPopstate){ try{ history.back(); }catch(e){} }
+    }
   }
-  document.getElementById('sheetClose').addEventListener('click', closeDetail);
-  overlay.addEventListener('click', function(e){ if(e.target === overlay) closeDetail(); });
-  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeDetail(); });
+  window.addEventListener('popstate', function(){
+    if(overlay.classList.contains('show')){ closeDetail(true); }
+  });
+  document.getElementById('sheetClose').addEventListener('click', function(){ closeDetail(false); });
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) closeDetail(false); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeDetail(false); });
 
   async function deleteCurrentDetail(){
     var scope = currentDetailScope, idx = currentDetailIdx;
@@ -2171,7 +2186,7 @@
     else if(scope === 'voice') renderVoiceLists();
     else if(scope === 'video'){ renderVideoLists(); renderCalendar(); }
     renderHeader();
-    closeDetail();
+    closeDetail(false);
   }
   sheetBody.addEventListener('click', function(e){
     if(e.target.closest('.sheet-delete-btn')) deleteCurrentDetail();
