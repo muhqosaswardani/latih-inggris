@@ -681,7 +681,7 @@
   <div class="tabs-inner shell">
     <button class="tab-btn active" data-tab="ringkasan">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12l9-8 9 8"/><path d="M6 10v9h12v-9"/></svg>
-      Ringkasan
+      Beranda
     </button>
     <button class="tab-btn" data-tab="ketik">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4z"/></svg>
@@ -967,9 +967,8 @@
       <input type="text" id="kamusSearch" class="kamus-search" placeholder="Cari kata bahasa Inggris atau Indonesia...">
       <div class="kamus-toolbar">
         <span class="hist-count" id="kamusShownCount"></span>
-        <button class="btn btn-ghost" id="btnRefreshKamus">
+        <button class="btn btn-ghost" id="btnRefreshKamus" aria-label="Refresh kamus" title="Refresh kamus">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M5.5 9a7 7 0 0112.6-2M18.5 15a7 7 0 01-12.6 2"/></svg>
-          Refresh kamus
         </button>
       </div>
       <div class="kamus-status mono" id="kamusStatus"></div>
@@ -1016,7 +1015,7 @@
 <nav class="bottom">
   <button class="bn-btn active" data-tab="ringkasan">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12l9-8 9 8"/><path d="M6 10v9h12v-9"/></svg>
-    Ringkasan
+    Beranda
   </button>
   <button class="bn-btn" data-tab="ketik">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4z"/></svg>
@@ -1342,13 +1341,15 @@
   var topTabs = document.querySelectorAll('.tab-btn');
   var bottomTabs = document.querySelectorAll('.bn-btn');
   var quickCards = document.querySelectorAll('.quick-card');
-  function goTo(name){
+  function goTo(name, opts){
+    opts = opts || {};
     panels.forEach(function(p){ p.classList.toggle('active', p.id === 'panel-' + name); });
     topTabs.forEach(function(b){ b.classList.toggle('active', b.dataset.tab === name); });
     bottomTabs.forEach(function(b){ b.classList.toggle('active', b.dataset.tab === name); });
-    window.scrollTo({top:0, behavior:'smooth'});
+    if(!opts.silent){ window.scrollTo({top:0, behavior:'smooth'}); }
     if(name === 'rekap'){ ensureRekapLoaded(); }
     if(name === 'kamus'){ ensureKamusLoaded(); }
+    try{ localStorage.setItem('latih_active_tab', name); }catch(e){}
   }
   topTabs.forEach(function(b){ b.addEventListener('click', function(){ goTo(b.dataset.tab); }); });
   bottomTabs.forEach(function(b){ b.addEventListener('click', function(){ goTo(b.dataset.tab); }); });
@@ -2231,7 +2232,8 @@
   };
   function kamusPrompt(words){
     return 'Kamu kamus Inggris-Indonesia untuk pelajar pemula. Untuk SETIAP kata bahasa Inggris di daftar berikut, ' +
-      'berikan terjemahan paling umum & singkat ke Bahasa Indonesia (1-4 kata saja, tanpa tanda kutip, tanpa penjelasan tambahan). ' +
+      'berikan terjemahan ke Bahasa Indonesia, singkat & umum (tanpa tanda kutip, tanpa penjelasan tambahan). ' +
+      'Kalau kata itu punya lebih dari satu arti umum, tulis semua arti tsb dipisah koma, contoh "bisa, dapat, kaleng" untuk "can" - jangan dipaksa jadi satu arti saja. ' +
       'Kalau kata itu nama diri/typo yang gak dikenal, terjemahkan sebaik mungkin sesuai konteks umum, jangan dikosongkan.\n\n' +
       'DAFTAR KATA:\n' + words.join(', ') + '\n\n' +
       'Balas array items {word, translation} - HARUS mencakup semua kata di atas, urutan bebas.';
@@ -2528,6 +2530,13 @@
     if(VIDEO.some(function(e){ return dayKey(e.ts)===todayKey; })){
       document.getElementById('videoTodayLabel').textContent = 'Video hari ini sudah diisi \u2713';
       document.getElementById('videoTodayNote').textContent = 'Rekam lagi kapan saja - entri baru akan ditambahkan ke riwayat.';
+    }
+    // Balik ke tab terakhir yang dibuka sebelum refresh, biar gak ke-reset ke Beranda.
+    var validTabs = ['ringkasan','ketik','voice','video','kamus','rekap'];
+    var savedTab = null;
+    try{ savedTab = localStorage.getItem('latih_active_tab'); }catch(e){}
+    if(savedTab && validTabs.indexOf(savedTab) !== -1 && savedTab !== 'ringkasan'){
+      goTo(savedTab, {silent:true});
     }
   }
   init();
