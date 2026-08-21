@@ -332,6 +332,7 @@
   .video-note{font-size:12.5px; color:var(--ink-soft); max-width:44ch; margin:0 auto;}
 
   .video-preview-wrap{position:relative; width:100%; max-width:420px;}
+  .video-preview-wrap video#videoPreview{transform:scaleX(-1);}
   .rec-badge{
     position:absolute; top:10px; left:10px; display:flex; align-items:center; gap:6px;
     background:rgba(0,0,0,0.55); backdrop-filter:blur(2px); color:#fff;
@@ -2548,9 +2549,15 @@
   var installBtn = document.getElementById('installBtn');
   var deferredPrompt = null;
 
+  // 0) Kalau app udah dibuka dalam mode terinstal (standalone), tombol instal
+  //    gak boleh pernah muncul lagi - biar header tetap rapi.
+  var alreadyStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
   // 2) Android/Chrome/Edge: tangkap event beforeinstallprompt, tampilkan tombol
   window.addEventListener('beforeinstallprompt', function(e){
     e.preventDefault();
+    if(alreadyStandalone) return;
     deferredPrompt = e;
     installBtn.hidden = false;
   });
@@ -2571,8 +2578,8 @@
   });
 
   // 3) Deteksi mode standalone (udah ke-install) - kalau sudah, jangan ganggu apa pun
-  var isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true;
+  var isStandalone = alreadyStandalone;
+  if(isStandalone){ installBtn.hidden = true; }
 
   // 4) iOS Safari gak support beforeinstallprompt -> kasih hint manual "Add to Home Screen"
   var ua = window.navigator.userAgent;
