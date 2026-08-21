@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>LATIH. - Ruang Praktik Bahasa Inggris Harian</title>
+
+<!-- ===== PWA: manifest, ikon, meta install ===== -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B5951">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LATIH.">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- ============================================= -->
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
@@ -598,6 +610,35 @@
   .rekap-compare .box .val{font-family:var(--mono); font-size:19px; font-weight:800; margin-top:3px; color:var(--ink);}
   .rekap-compare .box .val.up{color:var(--tape-green);}
   .rekap-compare .box .val.down{color:var(--rec-red);}
+
+  /* ============ PWA: install button + ios hint ============ */
+  .install-btn{
+    display:flex; align-items:center; gap:6px;
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.35);
+    color:#fff;
+    font-family:var(--serif); font-weight:600; font-size:13px;
+    padding:8px 12px; border-radius:999px;
+    white-space:nowrap;
+  }
+  .install-btn:hover{background:rgba(255,255,255,0.22);}
+  .install-btn svg{width:16px; height:16px; flex:none;}
+  .install-btn span{display:none;}
+  @media (min-width:560px){ .install-btn span{display:inline;} }
+
+  .ios-install-hint{
+    background:var(--amber-dim);
+    border-bottom:1px solid var(--line);
+  }
+  .ios-install-hint-inner{
+    max-width:920px; margin:0 auto; padding:10px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    font-size:13px; color:var(--ink);
+  }
+  .ios-install-hint-inner button{
+    background:none; border:none; color:var(--ink-soft);
+    font-size:20px; line-height:1; flex:none; padding:0 4px;
+  }
 </style>
 </head>
 <body>
@@ -608,6 +649,10 @@
       <span class="mark">LATIH</span>
       <span class="sub">log praktik harian</span>
     </div>
+    <button id="installBtn" class="install-btn" type="button" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+      <span>Instal App</span>
+    </button>
     <div class="streak-widget">
       <div class="streak-label">
         <span class="n" id="streakNum">47 hari</span>
@@ -623,6 +668,13 @@
     </div>
   </div>
 </header>
+
+<div id="iosInstallHint" class="ios-install-hint" hidden>
+  <div class="ios-install-hint-inner">
+    <span>Untuk instal di iPhone: ketuk tombol <strong>Share</strong> di Safari, lalu pilih <strong>"Add to Home Screen"</strong>.</span>
+    <button type="button" id="iosInstallHintClose" aria-label="Tutup">&times;</button>
+  </div>
+</div>
 
 <nav class="tabs">
   <div class="tabs-inner shell">
@@ -2478,6 +2530,64 @@
     }
   }
   init();
+})();
+</script>
+
+<!-- ===== PWA: register service worker + tombol Instal ===== -->
+<script>
+(function(){
+  // 1) Daftarkan service worker (biar app bisa di-install & buka offline)
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(err){
+        console.warn('SW gagal register:', err);
+      });
+    });
+  }
+
+  var installBtn = document.getElementById('installBtn');
+  var deferredPrompt = null;
+
+  // 2) Android/Chrome/Edge: tangkap event beforeinstallprompt, tampilkan tombol
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.hidden = false;
+  });
+
+  installBtn.addEventListener('click', function(){
+    if(!deferredPrompt) return;
+    installBtn.hidden = true;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.finally(function(){
+      deferredPrompt = null;
+    });
+  });
+
+  // Setelah ke-install, sembunyikan tombol
+  window.addEventListener('appinstalled', function(){
+    installBtn.hidden = true;
+    deferredPrompt = null;
+  });
+
+  // 3) Deteksi mode standalone (udah ke-install) - kalau sudah, jangan ganggu apa pun
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
+  // 4) iOS Safari gak support beforeinstallprompt -> kasih hint manual "Add to Home Screen"
+  var ua = window.navigator.userAgent;
+  var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  var isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+  var hint = document.getElementById('iosInstallHint');
+  var hintClose = document.getElementById('iosInstallHintClose');
+
+  if(isIOS && isSafari && !isStandalone && !localStorage.getItem('latih_ios_hint_dismissed')){
+    hint.hidden = false;
+  }
+  hintClose.addEventListener('click', function(){
+    hint.hidden = true;
+    localStorage.setItem('latih_ios_hint_dismissed', '1');
+  });
 })();
 </script>
 </body>
