@@ -88,7 +88,11 @@
   }
   @media (min-width:720px){ .top-inner{padding:16px 32px;} }
 
-  .brand{display:flex; align-items:baseline; gap:8px;}
+  .brand{
+    display:flex; align-items:baseline; gap:8px;
+    background:none; border:none; padding:0; margin:0; cursor:default;
+    -webkit-tap-highlight-color:transparent;
+  }
   .brand .mark{
     font-family:var(--mono); font-weight:700; font-size:18px;
     letter-spacing:0.02em; color:#FFFFFF;
@@ -97,8 +101,20 @@
   .brand .sub{
     font-family:var(--mono); font-size:10.5px; letter-spacing:0.09em;
     color:rgba(255,255,255,0.62); text-transform:uppercase; display:none;
+    transition:color .2s;
   }
   @media (min-width:560px){ .brand .sub{display:inline;} }
+  .brand .install-icon{
+    width:0; height:16px; flex:none; color:#FFFFFF;
+    opacity:0; transform:scale(.6); overflow:visible;
+    transition:width .22s ease, opacity .22s ease, transform .22s ease;
+  }
+  .brand.installable{cursor:pointer;}
+  .brand.installable .install-icon{width:16px; opacity:1; transform:scale(1);}
+  .brand.installable .sub{color:var(--amber);}
+  .brand.installable:hover .mark,
+  .brand.installable:hover .install-icon{opacity:0.85;}
+  .brand.installable:active{transform:translateY(1px);}
 
   .streak-widget{
     display:flex; align-items:center; gap:10px;
@@ -664,13 +680,10 @@
 
 <header class="top">
   <div class="top-inner">
-    <div class="brand">
+    <button id="installBtn" class="brand" type="button">
       <span class="mark">LATIH</span>
-      <span class="sub">log praktik harian</span>
-    </div>
-    <button id="installBtn" class="install-btn" type="button" hidden>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-      <span>Instal App</span>
+      <span class="sub" id="brandSub">log praktik harian</span>
+      <svg class="install-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
     </button>
     <div class="streak-widget">
       <div class="streak-label">
@@ -2589,7 +2602,14 @@
   }
 
   var installBtn = document.getElementById('installBtn');
+  var brandSub = document.getElementById('brandSub');
+  var brandSubDefault = brandSub ? brandSub.textContent : '';
   var deferredPrompt = null;
+
+  function setInstallable(on){
+    installBtn.classList.toggle('installable', on);
+    if(brandSub){ brandSub.textContent = on ? 'Ketuk utk instal' : brandSubDefault; }
+  }
 
   // 0) Kalau app udah dibuka dalam mode terinstal (standalone), tombol instal
   //    gak boleh pernah muncul lagi - biar header tetap rapi.
@@ -2601,12 +2621,12 @@
     e.preventDefault();
     if(alreadyStandalone) return;
     deferredPrompt = e;
-    installBtn.hidden = false;
+    setInstallable(true);
   });
 
   installBtn.addEventListener('click', function(){
     if(!deferredPrompt) return;
-    installBtn.hidden = true;
+    setInstallable(false);
     deferredPrompt.prompt();
     deferredPrompt.userChoice.finally(function(){
       deferredPrompt = null;
@@ -2615,13 +2635,13 @@
 
   // Setelah ke-install, sembunyikan tombol
   window.addEventListener('appinstalled', function(){
-    installBtn.hidden = true;
+    setInstallable(false);
     deferredPrompt = null;
   });
 
   // 3) Deteksi mode standalone (udah ke-install) - kalau sudah, jangan ganggu apa pun
   var isStandalone = alreadyStandalone;
-  if(isStandalone){ installBtn.hidden = true; }
+  if(isStandalone){ setInstallable(false); }
 
   // 4) iOS Safari gak support beforeinstallprompt -> kasih hint manual "Add to Home Screen"
   var ua = window.navigator.userAgent;
