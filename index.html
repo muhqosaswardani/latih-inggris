@@ -94,7 +94,7 @@
     -webkit-tap-highlight-color:transparent;
   }
   .brand .mark{
-    font-family:var(--mono); font-weight:700; font-size:26px;
+    font-family:var(--mono); font-weight:700; font-size:34px;
     letter-spacing:0.02em; color:#FFFFFF;
   }
   .brand .mark::after{content:"."; color:var(--amber);}
@@ -765,7 +765,7 @@
       <span class="eyebrow">Backup data</span>
       <div class="sync-row">
         <div class="sync-info">
-          <div class="sync-status" id="exportStatusText">Simpan cadangan data ke file, atau muat data dari file di perangkat lain.</div>
+          <div class="sync-status" id="exportStatusText">Simpan atau muat cadangan data lewat file.</div>
           <div class="sync-filename" id="exportFileInfo"></div>
         </div>
         <div class="sync-actions">
@@ -774,7 +774,7 @@
           <input type="file" id="importFileInput" accept="application/json" style="display:none;">
         </div>
       </div>
-      <p class="sync-hint">Export akan mengunduh file .json berisi semua entri Ketik/Voice/Video (termasuk audio & video). Buka LATIH. di perangkat lain lalu Import file itu untuk memindahkan datanya.</p>
+      <p class="sync-hint">Export/Import untuk memindahkan semua data ke perangkat lain.</p>
     </div>
 
     <div class="panel-head">
@@ -806,7 +806,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 01 - Tulisan</span>
       <h2>Tulis apa saja dalam bahasa Inggris</h2>
-      <p>Tidak perlu sempurna. Tulis seperti biasa bicara, AI akan menandai bagian yang perlu diperbaiki.</p>
+      <p>Tulis bebas, AI akan menandai bagian yang perlu diperbaiki.</p>
     </div>
 
     <div class="subtabs">
@@ -859,7 +859,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 02 - Bicara</span>
       <h2>Rekam & cek pelafalanmu</h2>
-      <p>Tekan tombol, ucapkan satu kalimat bahasa Inggris, lepaskan untuk mengirim ke AI. Dicek dua arah: <b>ketepatan makna/tata bahasa</b> dan <b>ketepatan pengucapan</b>.</p>
+      <p>Rekam satu kalimat, AI mengecek tata bahasa dan pengucapanmu.</p>
     </div>
 
     <div class="subtabs">
@@ -909,7 +909,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 03 - Video harian</span>
       <h2>Satu video, setiap hari</h2>
-      <p>Rekam lewat webcam atau unggah dari perangkat. Karena video mengandalkan audio, cara dianalisisnya sama seperti Voice: tata bahasa/makna + detail pengucapan.</p>
+      <p>Rekam atau unggah video, dianalisis sama seperti Voice.</p>
     </div>
 
     <div class="subtabs">
@@ -925,7 +925,7 @@
         </div>
         <div>
           <b class="mono" style="font-size:13px;" id="videoTodayLabel">Video hari ini belum diisi</b>
-          <div class="video-note" id="videoTodayNote">Sisa waktu sampai akhir hari - status "belum" akan ikut masuk ke rekap harian.</div>
+          <div class="video-note" id="videoTodayNote">Sisa waktu sebelum masuk rekap harian.</div>
         </div>
         <div class="video-preview-wrap" id="videoPreviewWrap" style="display:none;">
           <video id="videoPreview" style="width:100%; max-width:420px; border-radius:12px; background:#000; display:block;" autoplay muted playsinline></video>
@@ -986,7 +986,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 05 - Kamus pribadi</span>
       <h2>Semua kata yang sudah kamu pakai dengan benar</h2>
-      <p>Dikumpulkan otomatis dari kata-kata yang tidak ditandai salah di Ketik, Voice, dan Video - lalu diterjemahkan ke Bahasa Indonesia.</p>
+      <p>Terkumpul otomatis dari kata yang kamu pakai dengan benar.</p>
     </div>
 
     <div class="stat-row">
@@ -1011,7 +1011,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 04 - Rekap</span>
       <h2>Ringkasan progres belajar</h2>
-      <p>Dibuat otomatis setiap akhir hari & akhir minggu - atau tekan refresh untuk membuat ulang kapan saja.</p>
+      <p>Dibuat otomatis, atau tekan refresh untuk membuat ulang.</p>
     </div>
 
     <div class="segmented">
