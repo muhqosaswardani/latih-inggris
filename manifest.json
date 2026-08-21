@@ -1,0 +1,31 @@
+{
+  "name": "LATIH. - Ruang Praktik Bahasa Inggris Harian",
+  "short_name": "LATIH.",
+  "description": "Log praktik bahasa Inggris harian - tulis, voice, video, dan kamus dengan review AI.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F5F7F6",
+  "theme_color": "#0B5951",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
