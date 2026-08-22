@@ -540,6 +540,62 @@
   .log-item .log-chev svg{width:14px; height:14px;}
   .log-item.missed .log-body p{color:var(--ink-faint); font-style:italic;}
 
+  /* ============ BACA (mode switch: cerita / berita / cari topik) ============ */
+  .baca-toolbar{padding:16px;}
+  .baca-mode-switch{
+    display:inline-flex; background:var(--paper); border:1px solid var(--line);
+    border-radius:14px; padding:4px; gap:2px; margin-bottom:12px;
+  }
+  .baca-mode-btn{
+    width:42px; height:38px; display:flex; align-items:center; justify-content:center;
+    border:none; background:transparent; border-radius:10px; color:var(--ink-faint);
+    transition:background-color .15s ease, color .15s ease;
+  }
+  .baca-mode-btn svg{width:18px; height:18px; flex:none;}
+  .baca-mode-btn:hover{color:var(--ink); background:var(--paper-deep);}
+  .baca-mode-btn.active{background:var(--navy); color:#fff;}
+  .baca-action-row{display:flex; align-items:center; gap:10px;}
+  .baca-search-wrap{flex:1; display:none; overflow:hidden;}
+  .baca-search-wrap.show{display:block;}
+  .baca-search-input{
+    width:100%; background:#FFFFFF; border:1px solid var(--line); border-radius:12px;
+    padding:12px 14px; font-family:var(--serif); font-size:14.5px; color:var(--ink);
+    transition:border-color .15s ease;
+  }
+  .baca-search-input:focus{border-color:var(--navy);}
+  .baca-action-row .icon-btn{margin-left:auto;}
+  .baca-action-row .baca-search-wrap.show ~ .icon-btn{margin-left:0;}
+  .icon-btn{
+    width:46px; height:46px; flex:none; display:flex; align-items:center; justify-content:center;
+    border-radius:12px; border:none; background:var(--navy); color:#fff;
+    transition:background-color .15s ease, transform .1s ease, opacity .15s ease;
+  }
+  .icon-btn svg{width:19px; height:19px; flex:none;}
+  .icon-btn:hover{background:var(--navy-soft);}
+  .icon-btn:active{transform:scale(0.94);}
+  .icon-btn:disabled{opacity:0.5; cursor:default;}
+  .story-kind-tag{
+    display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10px;
+    font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--navy);
+    background:var(--paper-deep); padding:5px 10px 5px 8px; border-radius:20px; margin-bottom:14px;
+  }
+  .story-kind-tag svg{width:12px; height:12px; flex:none;}
+
+  /* ============ BACA (story reader) ============ */
+  .story-toggle-btn{margin-bottom:16px;}
+  .story-toggle-btn svg{width:15px; height:15px;}
+  .story-reader-wrap + .story-reader-wrap{margin-top:24px; padding-top:24px; border-top:1px solid var(--line);}
+  .story-title{font-size:18px;}
+  .story-title-id{font-size:12.5px; color:var(--ink-faint); font-style:italic; margin-top:3px; margin-bottom:18px;}
+  .story-para{margin-bottom:16px;}
+  .story-para:last-child{margin-bottom:0;}
+  .story-line{display:block; margin-bottom:6px;}
+  .story-line:last-child{margin-bottom:0;}
+  .line-en{display:block; font-size:15.5px; line-height:1.6; color:var(--ink);}
+  .line-id{display:none; font-size:13px; line-height:1.5; color:var(--ink-soft); margin-top:2px;}
+  .story-reader.show-translate .line-id{display:block;}
+  .story-empty-hint{color:var(--ink-faint); font-size:13.5px; padding:8px 2px 2px;}
+
   /* ============ VIDEO GRID (history + mini) ============ */
   .vgrid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
   @media (min-width:560px){ .vgrid.full{grid-template-columns:repeat(3,1fr);} }
@@ -760,6 +816,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V9M11 19V4M18 19v-7"/></svg>
       Rekap
     </button>
+    <button class="tab-btn" data-tab="baca">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5.5C4 4.2 7 3.5 9 4.2c1.3.4 2.4 1.2 3 2.1V19c-.6-.9-1.7-1.7-3-2.1-2-.7-5 0-7 1.3V5.5z"/><path d="M22 5.5c-2-1.3-5-2-7-1.3-1.3.4-2.4 1.2-3 2.1V19c.6-.9 1.7-1.7 3-2.1 2-.7 5 0 7 1.3V5.5z"/></svg>
+      Baca
+    </button>
   </div>
 </nav>
 
@@ -792,7 +852,7 @@
       <span class="eyebrow">Backup data</span>
       <div class="sync-row">
         <div class="sync-info">
-          <div class="sync-status" id="exportStatusText">Simpan cadangan data ke file, atau muat data dari file di perangkat lain.</div>
+          <div class="sync-status" id="exportStatusText">Backup atau pulihkan data lewat file.</div>
           <div class="sync-filename" id="exportFileInfo"></div>
         </div>
         <div class="sync-actions">
@@ -801,7 +861,7 @@
           <input type="file" id="importFileInput" accept="application/json" style="display:none;">
         </div>
       </div>
-      <p class="sync-hint">Export akan mengunduh file .json berisi semua entri Ketik/Voice/Video (termasuk audio & video). Buka LATIH. di perangkat lain lalu Import file itu untuk memindahkan datanya.</p>
+      <p class="sync-hint">Export mengunduh semua data ke satu file .json. Import file itu di perangkat lain untuk memindahkan datanya.</p>
     </div>
 
     <div class="panel-head">
@@ -833,7 +893,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 01 - Tulisan</span>
       <h2>Tulis apa saja dalam bahasa Inggris</h2>
-      <p>Tidak perlu sempurna. Tulis seperti biasa bicara, AI akan menandai bagian yang perlu diperbaiki.</p>
+      <p>Tulis santai saja, AI akan menandai bagian yang perlu diperbaiki.</p>
     </div>
 
     <div class="subtabs">
@@ -908,7 +968,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 02 - Bicara</span>
       <h2>Rekam & cek pelafalanmu</h2>
-      <p>Tekan tombol, ucapkan satu kalimat bahasa Inggris, lepaskan untuk mengirim ke AI. Dicek dua arah: <b>ketepatan makna/tata bahasa</b> dan <b>ketepatan pengucapan</b>.</p>
+      <p>Tekan, ucapkan satu kalimat, lepaskan untuk dicek AI - makna dan pengucapan.</p>
     </div>
 
     <div class="subtabs">
@@ -980,7 +1040,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 03 - Video harian</span>
       <h2>Satu video, setiap hari</h2>
-      <p>Rekam lewat webcam atau unggah dari perangkat. Karena video mengandalkan audio, cara dianalisisnya sama seperti Voice: tata bahasa/makna + detail pengucapan.</p>
+      <p>Rekam lewat webcam atau unggah video. Dianalisis seperti Voice: makna dan pengucapan.</p>
     </div>
 
     <div class="subtabs">
@@ -996,7 +1056,7 @@
         </div>
         <div>
           <b class="mono" style="font-size:13px;" id="videoTodayLabel">Video hari ini belum diisi</b>
-          <div class="video-note" id="videoTodayNote">Sisa waktu sampai akhir hari - status "belum" akan ikut masuk ke rekap harian.</div>
+          <div class="video-note" id="videoTodayNote">Belum diisi akan tercatat "belum" di rekap harian.</div>
         </div>
         <div class="video-preview-wrap" id="videoPreviewWrap" style="display:none;">
           <video id="videoPreview" style="width:100%; max-width:420px; border-radius:12px; background:#000; display:block;" autoplay muted playsinline></video>
@@ -1079,7 +1139,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 05 - Kamus pribadi</span>
       <h2>Semua kata yang sudah kamu pakai dengan benar</h2>
-      <p>Dikumpulkan otomatis dari kata-kata yang tidak ditandai salah di Ketik, Voice, dan Video - lalu diterjemahkan ke Bahasa Indonesia.</p>
+      <p>Terkumpul otomatis dari kata yang benar di Ketik, Voice, dan Video.</p>
     </div>
 
     <div class="stat-row">
@@ -1104,7 +1164,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 04 - Rekap</span>
       <h2>Ringkasan progres belajar</h2>
-      <p>Dibuat otomatis setiap akhir hari & akhir minggu - atau tekan refresh untuk membuat ulang kapan saja.</p>
+      <p>Dibuat otomatis tiap akhir hari & minggu, atau refresh kapan saja.</p>
     </div>
 
     <div class="segmented">
@@ -1130,6 +1190,71 @@
           <span id="refreshLabel">Refresh rekap</span>
         </button>
       </div>
+    </div>
+  </section>
+
+  <!-- ================= BACA ================= -->
+  <section class="panel" id="panel-baca">
+    <div class="panel-head">
+      <span class="eyebrow">Modul 06 - Membaca</span>
+      <h2>Baca cerita, berita, atau topik apa saja</h2>
+      <p>Pilih jenis bacaan atau cari topik untuk menambah wawasan - semua dibuat AI. Terjemahan per kalimat bisa ditampilkan kapan saja.</p>
+    </div>
+
+    <div class="subtabs">
+      <button class="subtab-btn active" data-scope="baca" data-sub="latihan">Baca</button>
+      <button class="subtab-btn" data-scope="baca" data-sub="riwayat">Riwayat</button>
+    </div>
+
+    <!-- ---- BACA ---- -->
+    <div class="sub-view active" data-scope="baca" data-sub="latihan">
+      <div class="card baca-toolbar">
+        <div class="baca-mode-switch" id="bacaModeSwitch">
+          <button type="button" class="baca-mode-btn active" data-mode="story" title="Cerita pendek" aria-label="Cerita pendek">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 5.5C4 4.2 7 3.5 9 4.2c1.3.4 2.4 1.2 3 2.1V19c-.6-.9-1.7-1.7-3-2.1-2-.7-5 0-7 1.3V5.5z"/><path d="M22 5.5c-2-1.3-5-2-7-1.3-1.3.4-2.4 1.2-3 2.1V19c.6-.9 1.7-1.7 3-2.1 2-.7 5 0 7 1.3V5.5z"/></svg>
+          </button>
+          <button type="button" class="baca-mode-btn" data-mode="news" title="Berita" aria-label="Berita">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h13a2 2 0 0 1 2 2v12.5A1.5 1.5 0 0 1 17.5 20H6a2 2 0 0 1-2-2V4z"/><path d="M19 8.5h1.5A1.5 1.5 0 0 1 22 10v8a2 2 0 0 1-2 2"/><path d="M7.5 8h6M7.5 11h6M7.5 14h4"/></svg>
+          </button>
+          <button type="button" class="baca-mode-btn" data-mode="topic" title="Cari topik" aria-label="Cari topik">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
+          </button>
+        </div>
+
+        <div class="baca-action-row">
+          <div class="baca-search-wrap" id="bacaSearchWrap">
+            <input type="text" id="bacaSearchInput" class="baca-search-input" placeholder="Topik apa saja - sains, sejarah, budaya, teknologi..." maxlength="140">
+          </div>
+          <button type="button" class="icon-btn" id="btnBacaNew" title="Buat bacaan baru" aria-label="Buat bacaan baru">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5l1.85 5.65L19.5 10l-5.65 1.85L12 17.5l-1.85-5.65L4.5 10l5.65-1.85L12 2.5z"/></svg>
+          </button>
+        </div>
+
+        <div class="loading-row" id="bacaLoading"><span class="spin-reel"></span><span>membuat bacaan…</span></div>
+        <div class="corr" id="bacaError" style="display:none; margin-top:14px; border-left-color:var(--rec-red);">
+          <div class="k">Gagal memuat</div>
+          <div class="v" id="bacaErrorText"></div>
+        </div>
+        <div id="bacaStoryBlock" style="margin-top:16px;"></div>
+      </div>
+
+      <div class="panel-head" style="margin-top:28px;">
+        <span class="eyebrow">Riwayat</span>
+        <h2 style="font-size:15px;">Bacaan sebelumnya</h2>
+      </div>
+      <div class="card log-list" id="bacaMiniList"></div>
+    </div>
+
+    <!-- ---- RIWAYAT ---- -->
+    <div class="sub-view" data-scope="baca" data-sub="riwayat">
+      <div class="filter-row" id="bacaFilters">
+        <button class="chip-filter active" data-filter="all">Semua</button>
+        <button class="chip-filter" data-filter="today">Hari ini</button>
+        <button class="chip-filter" data-filter="week">Minggu ini</button>
+        <button class="chip-filter" data-filter="month">Bulan ini</button>
+      </div>
+      <div class="hist-count" id="bacaHistCount"></div>
+      <div class="card log-list" id="bacaFullList"></div>
     </div>
   </section>
 
@@ -1159,6 +1284,10 @@
   <button class="bn-btn" data-tab="rekap">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V9M11 19V4M18 19v-7"/></svg>
     Rekap
+  </button>
+  <button class="bn-btn" data-tab="baca">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5.5C4 4.2 7 3.5 9 4.2c1.3.4 2.4 1.2 3 2.1V19c-.6-.9-1.7-1.7-3-2.1-2-.7-5 0-7 1.3V5.5z"/><path d="M22 5.5c-2-1.3-5-2-7-1.3-1.3.4-2.4 1.2-3 2.1V19c.6-.9 1.7-1.7 3-2.1 2-.7 5 0 7 1.3V5.5z"/></svg>
+    Baca
   </button>
 </nav>
 
@@ -1230,16 +1359,17 @@
   // ==================================================================
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
-  var DB_NAME = 'latihDB', DB_VERSION = 3;
+  var DB_NAME = 'latihDB', DB_VERSION = 5;
   function idbOpen(){
     return new Promise(function(resolve, reject){
       var req = indexedDB.open(DB_NAME, DB_VERSION);
       req.onupgradeneeded = function(e){
         var db = e.target.result;
-        ['ketik','voice','video','meta'].forEach(function(store){
+        ['ketik','voice','video','meta','baca'].forEach(function(store){
           if(!db.objectStoreNames.contains(store)) db.createObjectStore(store, {keyPath:'id'});
         });
         if(!db.objectStoreNames.contains('kamus')) db.createObjectStore('kamus', {keyPath:'word'});
+        if(!db.objectStoreNames.contains('rekapCache')) db.createObjectStore('rekapCache', {keyPath:'key'});
       };
       req.onsuccess = function(){ resolve(req.result); };
       req.onerror = function(){ reject(req.error); };
@@ -1489,7 +1619,7 @@
   // ==================================================================
   // STATE - dimuat dari IndexedDB, diurutkan terbaru -> terlama
   // ==================================================================
-  var KETIK = [], VOICE = [], VIDEO = [];
+  var KETIK = [], VOICE = [], VIDEO = [], BACA = [];
 
   function sortDesc(arr){ arr.sort(function(a,b){ return b.ts - a.ts; }); return arr; }
 
@@ -1497,6 +1627,7 @@
     KETIK = sortDesc(await idbAll('ketik'));
     VOICE = sortDesc(await idbAll('voice'));
     VIDEO = sortDesc(await idbAll('video'));
+    BACA = sortDesc(await idbAll('baca'));
   }
 
   function dotClass(status){ return status === 'ok' ? 'g' : 'r'; }
@@ -1899,6 +2030,47 @@
     required:['hasError','correctedSentence','diffs','corrections','note','translation','meta']
   };
 
+  var BACA_SCHEMA = {
+    type:'OBJECT',
+    properties:{
+      title:{type:'STRING'},
+      titleId:{type:'STRING'},
+      paragraphs:{type:'ARRAY', items:{type:'OBJECT', properties:{
+        lines:{type:'ARRAY', items:{type:'OBJECT', properties:{en:{type:'STRING'}, id:{type:'STRING'}}, required:['en','id']}}
+      }, required:['lines']}}
+    },
+    required:['title','titleId','paragraphs']
+  };
+
+  function bacaPrompt(){
+    var seed = Math.floor(Math.random()*100000);
+    return 'Buatkan SATU cerita pendek dalam Bahasa Inggris untuk latihan membaca level menengah (intermediate). ' +
+      'Panjang harus BENAR-BENAR sekitar 500 kata (minimal 480, maksimal 550 kata) - jangan dibuat singkat. Bagi menjadi 8-12 paragraf, tiap paragraf 3-5 kalimat pendek & natural, supaya ceritanya utuh dan mengalir (ada pembukaan, isi/konflik kecil, dan penutup). ' +
+      'Pilih topik sehari-hari secara acak (kerja, keluarga, perjalanan, hobi, alam, teknologi, dll), variasikan tiap kali diminta. ' +
+      'Balas terstruktur: title (judul Bahasa Inggris), titleId (terjemahan judul ke Bahasa Indonesia), ' +
+      'paragraphs (array paragraf, tiap paragraf berisi lines/array kalimat, tiap kalimat berisi en dan id/terjemahan natural PER KALIMAT itu saja). ' +
+      'Seed variasi: ' + seed + '.';
+  }
+
+  function newsPrompt(){
+    var seed = Math.floor(Math.random()*100000);
+    return 'Buatkan SATU artikel bergaya berita/feature dalam Bahasa Inggris untuk latihan membaca level menengah (intermediate), dengan gaya jurnalistik yang natural (ada lead singkat di awal, lalu isi). ' +
+      'Panjang harus BENAR-BENAR sekitar 500 kata (minimal 480, maksimal 550 kata) - jangan dibuat singkat. Bagi menjadi 8-12 paragraf, tiap paragraf 3-5 kalimat pendek & natural, dengan alur lead - isi - penutup layaknya artikel feature yang utuh. ' +
+      'Pilih topik acak bergaya berita ringan/feature yang edukatif (sains populer, lingkungan, teknologi, kesehatan, budaya, penemuan menarik, tren global, dll). ' +
+      'JANGAN mengarang seolah itu kejadian nyata dengan nama orang, lembaga, atau tanggal spesifik yang bisa disalahartikan sebagai berita sungguhan - buat bersifat umum, faktual secara konsep, dan edukatif. ' +
+      'Balas terstruktur: title (judul Bahasa Inggris ala headline berita), titleId (terjemahan judul ke Bahasa Indonesia), ' +
+      'paragraphs (array paragraf, tiap paragraf berisi lines/array kalimat, tiap kalimat berisi en dan id/terjemahan natural PER KALIMAT itu saja). ' +
+      'Seed variasi: ' + seed + '.';
+  }
+
+  function topicPrompt(query){
+    return 'Buatkan SATU artikel dalam Bahasa Inggris yang informatif dan menarik tentang topik berikut, untuk latihan membaca sekaligus menambah wawasan: "' + query + '". ' +
+      'Level bahasa menengah (intermediate). Panjang harus BENAR-BENAR sekitar 500 kata (minimal 480, maksimal 550 kata) - jangan dibuat singkat. Bagi menjadi 8-12 paragraf, tiap paragraf 3-5 kalimat pendek & natural, dengan alur pembuka - beberapa sudut pandang/aspek - penutup, supaya benar-benar membahas topiknya secara utuh dan mendalam. ' +
+      'Isinya harus fakta/insight yang relevan dan akurat secara konsep tentang topik tersebut (bukan cerita fiksi). Kalau topiknya terlalu umum atau ambigu, pilih beberapa sudut pandang paling menarik dan mudah dipahami supaya panjangnya tetap tercapai. ' +
+      'Balas terstruktur: title (judul Bahasa Inggris), titleId (terjemahan judul ke Bahasa Indonesia), ' +
+      'paragraphs (array paragraf, tiap paragraf berisi lines/array kalimat, tiap kalimat berisi en dan id/terjemahan natural PER KALIMAT itu saja).';
+  }
+
   function isWordChar(ch){ return !!ch && /[A-Za-z0-9]/.test(ch); }
 
   // Cari kemunculan `w` di `text` mulai dari posisi `from`, TAPI hanya terima
@@ -2116,6 +2288,129 @@
     wireFilters('ketikFilters', full, document.getElementById('ketikHistCount'), 'entri');
   }
   function emptyMsg(t){ return '<p style="color:var(--ink-faint); font-size:13.5px; padding:8px 2px;">'+t+'</p>'; }
+
+  // ==================================================================
+  // BACA - cerita pendek Bahasa Inggris digenerate AI, terjemahan
+  // per kalimat bisa ditampilkan/disembunyikan (bukan blok Inggris
+  // penuh lalu blok Indonesia penuh terpisah).
+  // ==================================================================
+  function bacaKindInfo(story){
+    if(story.kind === 'news') return {
+      label:'Berita',
+      icon:'<path d="M4 4h13a2 2 0 0 1 2 2v12.5A1.5 1.5 0 0 1 17.5 20H6a2 2 0 0 1-2-2V4z"/><path d="M19 8.5h1.5A1.5 1.5 0 0 1 22 10v8a2 2 0 0 1-2 2"/><path d="M7.5 8h6M7.5 11h6M7.5 14h4"/>'
+    };
+    if(story.kind === 'topic') return {
+      label: story.query ? ('Topik \u00b7 ' + story.query) : 'Topik',
+      icon:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/>'
+    };
+    return {
+      label:'Cerita',
+      icon:'<path d="M2 5.5C4 4.2 7 3.5 9 4.2c1.3.4 2.4 1.2 3 2.1V19c-.6-.9-1.7-1.7-3-2.1-2-.7-5 0-7 1.3V5.5z"/><path d="M22 5.5c-2-1.3-5-2-7-1.3-1.3.4-2.4 1.2-3 2.1V19c.6-.9 1.7-1.7 3-2.1 2-.7 5 0 7 1.3V5.5z"/>'
+    };
+  }
+
+  function storyReaderHtml(story){
+    var kind = bacaKindInfo(story);
+    var html = '<div class="story-reader-wrap">' +
+      '<div class="story-kind-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+kind.icon+'</svg><span>'+escapeHtml(kind.label)+'</span></div>' +
+      '<button type="button" class="btn btn-ghost story-toggle-btn" data-story-toggle>' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h11M9 3v2M13 5c-1 4-3.5 7-7 9M6 10c1.5 2 4 3.5 6.5 4M14 21l4-9 4 9M15.5 18h5"/></svg>' +
+      '<span>Tampilkan terjemahan</span></button>' +
+      '<div class="story-reader">' +
+      '<h3 class="story-title mono">'+escapeHtml(story.title||'')+'</h3>' +
+      '<div class="story-title-id">'+escapeHtml(story.titleId||'')+'</div>';
+    (story.paragraphs||[]).forEach(function(p){
+      html += '<div class="story-para">';
+      (p.lines||[]).forEach(function(l){
+        html += '<span class="story-line"><span class="line-en">'+escapeHtml(l.en||'')+'</span><span class="line-id">'+escapeHtml(l.id||'')+'</span></span>';
+      });
+      html += '</div>';
+    });
+    html += '</div></div>';
+    return html;
+  }
+
+  document.body.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-story-toggle]');
+    if(!btn) return;
+    var wrap = btn.closest('.story-reader-wrap');
+    var reader = wrap.querySelector('.story-reader');
+    var showing = reader.classList.toggle('show-translate');
+    btn.querySelector('span').textContent = showing ? 'Sembunyikan terjemahan' : 'Tampilkan terjemahan';
+  });
+
+  function renderBacaItem(e, idx){
+    var kindLabel = bacaKindInfo(e).label;
+    return '<div class="log-item clickable" data-scope="baca" data-idx="'+idx+'" data-periods="'+periodsOf(e.ts).join(' ')+'">' +
+      '<div class="log-time">'+fmtDateShort(e.ts)+'<br>'+fmtTime(e.ts)+'</div>' +
+      '<div class="log-dot g"></div>' +
+      '<div class="log-body"><p>'+escapeHtml(e.title)+'</p><div class="meta">'+escapeHtml(kindLabel)+' \u00b7 '+escapeHtml(e.titleId)+'</div></div>' +
+      '<div class="log-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>' +
+      '</div>';
+  }
+  function renderBacaLists(){
+    var mini = document.getElementById('bacaMiniList'), full = document.getElementById('bacaFullList');
+    mini.innerHTML = BACA.length ? BACA.slice(0,5).map(function(e,i){return renderBacaItem(e,i);}).join('') : emptyMsg('Belum ada cerita.');
+    full.innerHTML = BACA.length ? BACA.map(function(e,i){return renderBacaItem(e,i);}).join('') : emptyMsg('Belum ada cerita.');
+    wireFilters('bacaFilters', full, document.getElementById('bacaHistCount'), 'cerita');
+  }
+
+  var bacaMode = 'story';
+  var bacaModeSwitch = document.getElementById('bacaModeSwitch');
+  var bacaSearchWrap = document.getElementById('bacaSearchWrap');
+  var bacaSearchInput = document.getElementById('bacaSearchInput');
+  bacaModeSwitch.addEventListener('click', function(e){
+    var btn = e.target.closest('.baca-mode-btn');
+    if(!btn) return;
+    bacaModeSwitch.querySelectorAll('.baca-mode-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    bacaMode = btn.dataset.mode;
+    bacaSearchWrap.classList.toggle('show', bacaMode === 'topic');
+    if(bacaMode === 'topic'){ bacaSearchInput.focus(); }
+  });
+  bacaSearchInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); btnBacaNew.click(); }
+  });
+
+  var btnBacaNew = document.getElementById('btnBacaNew');
+  var bacaLoading = document.getElementById('bacaLoading');
+  var bacaErrorBox = document.getElementById('bacaError');
+  btnBacaNew.addEventListener('click', async function(){
+    var topicQuery = '';
+    if(bacaMode === 'topic'){
+      topicQuery = bacaSearchInput.value.trim();
+      if(!topicQuery){
+        bacaSearchInput.focus();
+        bacaSearchInput.style.borderColor = 'var(--rec-red)';
+        setTimeout(function(){ bacaSearchInput.style.borderColor = ''; }, 900);
+        return;
+      }
+    }
+    bacaErrorBox.style.display = 'none';
+    bacaLoading.classList.add('show');
+    btnBacaNew.disabled = true;
+    try{
+      var prompt = bacaMode === 'news' ? newsPrompt() : bacaMode === 'topic' ? topicPrompt(topicQuery) : bacaPrompt();
+      var result = await geminiGenerate([{text: prompt}], BACA_SCHEMA);
+      var entry = {
+        kind: bacaMode, query: bacaMode === 'topic' ? topicQuery : '',
+        id: 'b_' + Date.now(), ts: Date.now(),
+        title: result.title || '', titleId: result.titleId || '',
+        paragraphs: result.paragraphs || []
+      };
+      await idbPut('baca', entry);
+      BACA.unshift(entry);
+      document.getElementById('bacaStoryBlock').innerHTML = storyReaderHtml(entry);
+      renderBacaLists();
+      if(bacaMode === 'topic'){ bacaSearchInput.value = ''; }
+    }catch(err){
+      document.getElementById('bacaErrorText').textContent = err.message;
+      bacaErrorBox.style.display = 'block';
+    }finally{
+      bacaLoading.classList.remove('show');
+      btnBacaNew.disabled = false;
+    }
+  });
 
   // ==================================================================
   // VOICE
@@ -2668,6 +2963,11 @@
         pronCardsHtml(e.pron) +
         '<div class="vr-row" style="margin-top:14px;"><div class="k">Arti kalimat</div><div class="v">'+escapeHtml(e.translation)+'</div></div>' +
         deleteBtnHtml;
+    } else if(scope === 'baca'){
+      var e = BACA[idx];
+      eyebrow = 'Riwayat \u00b7 ' + bacaKindInfo(e).label;
+      title = fmtDateShort(e.ts) + ' \u00b7 ' + fmtTime(e.ts);
+      html = storyReaderHtml(e) + deleteBtnHtml;
     } else if(scope === 'video-missed'){
       eyebrow = 'Riwayat \u00b7 Video';
       title = 'Tidak ada video';
@@ -2704,16 +3004,17 @@
 
   async function deleteCurrentDetail(){
     var scope = currentDetailScope, idx = currentDetailIdx;
-    var arr = scope === 'ketik' ? KETIK : scope === 'voice' ? VOICE : scope === 'video' ? VIDEO : null;
+    var arr = scope === 'ketik' ? KETIK : scope === 'voice' ? VOICE : scope === 'video' ? VIDEO : scope === 'baca' ? BACA : null;
     if(!arr || !arr[idx]) return;
     var e = arr[idx];
-    var labelMap = {ketik:'tulisan', voice:'voice', video:'video'};
+    var labelMap = {ketik:'tulisan', voice:'voice', video:'video', baca:'cerita'};
     if(!confirm('Hapus riwayat ' + labelMap[scope] + ' ini? Tindakan ini tidak bisa dibatalkan.')) return;
     await idbDelete(scope, e.id);
     arr.splice(idx, 1);
     if(scope === 'ketik') renderKetikLists();
     else if(scope === 'voice') renderVoiceLists();
     else if(scope === 'video'){ renderVideoLists(); renderCalendar(); }
+    else if(scope === 'baca') renderBacaLists();
     renderHeader();
     closeDetail(false);
   }
@@ -2885,6 +3186,21 @@
   var REKAP_CACHE = {};
   var currentSeg = 'harian';
 
+  // Muat rekap yang sudah pernah dibuat dari IndexedDB, supaya begitu app
+  // dibuka lagi (refresh/reload) rekap yang tampil TETAP SAMA - tidak
+  // digenerate ulang oleh AI setiap kali - kecuali cache untuk periode itu
+  // memang belum ada, atau tombol refresh manual dipencet, atau sudah lewat
+  // tengah malam (periode baru -> cacheKey baru -> otomatis generate ulang).
+  async function loadRekapCache(){
+    try{
+      var rows = await idbAll('rekapCache');
+      rows.forEach(function(r){ REKAP_CACHE[r.key] = r.data; });
+    }catch(e){ /* IDB belum siap / store kosong - biarkan, generateRekap akan generate dari awal */ }
+  }
+  async function saveRekapCache(cacheKey, data){
+    try{ await idbPut('rekapCache', {key: cacheKey, data: data}); }catch(e){ /* gagal simpan lokal, tidak fatal - tetap tampil dari memori */ }
+  }
+
   function entriesInRange(startTs, endTs){
     function f(arr){ return arr.filter(function(e){ return e.ts >= startTs && e.ts < endTs; }); }
     return { ketik: f(KETIK), voice: f(VOICE), video: f(VIDEO) };
@@ -2978,6 +3294,7 @@
       }
       var full = { stats: stats, bucket: bucket, compareHtml: compareHtml, patterns: ai.patterns||[], focusPoints: ai.focusPoints||[], narrative: ai.narrative||'', periodLabelText: periodLabelText };
       REKAP_CACHE[cacheKey] = full;
+      saveRekapCache(cacheKey, full);
       renderRekap(kind, full);
     }catch(err){
       target.innerHTML = '<div class="corr" style="border-left-color:var(--rec-red);"><div class="k">Gagal membuat rekap</div><div class="v">'+escapeHtml(err.message)+'</div></div>';
@@ -3069,16 +3386,35 @@
     generateRekap('harian', false);
   }
 
+  // Jadwalkan auto-refresh rekap HARIAN tepat jam 00:00 waktu lokal, tiap
+  // hari, SELAMA app-nya masih terbuka. Karena cacheKey rekap harian sudah
+  // berbasis tanggal (harian_YYYY-MM-DD), begitu tanggal berganti, cache
+  // lama otomatis "expired" (key beda) - baris ini cuma memicu generate-nya
+  // langsung tepat di jam 00:00 (bukan nunggu sampai tab Rekap dibuka lagi),
+  // supaya rekap yang tersimpan lokal sudah representasi hari yang baru.
+  function scheduleMidnightRekapRefresh(){
+    var now = new Date();
+    var next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5, 0);
+    var ms = next.getTime() - now.getTime();
+    setTimeout(function(){
+      generateRekap('harian', true);
+      scheduleMidnightRekapRefresh();
+    }, ms);
+  }
+
   // ==================================================================
   // INIT
   // ==================================================================
   async function init(){
     await loadAll();
     await loadKamus();
+    await loadRekapCache();
     renderHeader();
     renderKetikLists();
     renderVoiceLists();
     renderVideoLists();
+    renderBacaLists();
+    if(BACA.length){ document.getElementById('bacaStoryBlock').innerHTML = storyReaderHtml(BACA[0]); }
     renderCalendar();
     var todayKey = dayKey(Date.now());
     if(VIDEO.some(function(e){ return dayKey(e.ts)===todayKey; })){
@@ -3086,12 +3422,13 @@
       document.getElementById('videoTodayNote').textContent = 'Rekam lagi kapan saja - entri baru akan ditambahkan ke riwayat.';
     }
     // Balik ke tab terakhir yang dibuka sebelum refresh, biar gak ke-reset ke Beranda.
-    var validTabs = ['ringkasan','ketik','voice','video','kamus','rekap'];
+    var validTabs = ['ringkasan','ketik','voice','video','kamus','rekap','baca'];
     var savedTab = null;
     try{ savedTab = localStorage.getItem('latih_active_tab'); }catch(e){}
     if(savedTab && validTabs.indexOf(savedTab) !== -1 && savedTab !== 'ringkasan'){
       goTo(savedTab, {silent:true});
     }
+    scheduleMidnightRekapRefresh();
   }
   init();
 })();
