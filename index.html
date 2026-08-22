@@ -88,33 +88,17 @@
   }
   @media (min-width:720px){ .top-inner{padding:16px 32px;} }
 
-  .brand{
-    display:flex; align-items:baseline; gap:8px;
-    background:none; border:none; padding:0; margin:0; cursor:default;
-    -webkit-tap-highlight-color:transparent;
-  }
+  .brand{display:flex; align-items:baseline; gap:8px;}
   .brand .mark{
-    font-family:var(--mono); font-weight:700; font-size:34px;
+    font-family:var(--mono); font-weight:700; font-size:18px;
     letter-spacing:0.02em; color:#FFFFFF;
   }
   .brand .mark::after{content:"."; color:var(--amber);}
   .brand .sub{
     font-family:var(--mono); font-size:10.5px; letter-spacing:0.09em;
     color:rgba(255,255,255,0.62); text-transform:uppercase; display:none;
-    transition:color .2s;
   }
   @media (min-width:560px){ .brand .sub{display:inline;} }
-  .brand .install-icon{
-    width:0; height:16px; flex:none; color:#FFFFFF;
-    opacity:0; transform:scale(.6); overflow:visible;
-    transition:width .22s ease, opacity .22s ease, transform .22s ease;
-  }
-  .brand.installable{cursor:pointer;}
-  .brand.installable .install-icon{width:16px; opacity:1; transform:scale(1);}
-  .brand.installable .sub{color:var(--amber);}
-  .brand.installable:hover .mark,
-  .brand.installable:hover .install-icon{opacity:0.85;}
-  .brand.installable:active{transform:translateY(1px);}
 
   .streak-widget{
     display:flex; align-items:center; gap:10px;
@@ -236,6 +220,33 @@
   .quick-card b{display:block; font-family:var(--mono); font-size:13.5px; margin-bottom:3px;}
   .quick-card span{font-size:13px; color:var(--ink-soft);}
 
+  /* ============ IDE LATIHAN (generate pertanyaan/kalimat) ============ */
+  .idea-row{display:flex; gap:10px; margin-bottom:12px;}
+  .idea-btn{
+    width:46px; height:46px; flex:none; display:flex; align-items:center; justify-content:center;
+    border-radius:12px; border:1.5px dashed var(--navy); background:var(--paper-alt);
+    color:var(--navy); cursor:pointer; transition:background .15s, transform .1s;
+  }
+  .idea-btn:hover{background:var(--paper-deep);}
+  .idea-btn:active{transform:scale(0.93);}
+  .idea-btn svg{width:19px; height:19px; flex:none;}
+  .prompt-box{
+    background:var(--amber-dim); border:1px solid rgba(183,121,31,0.28); border-radius:var(--radius);
+    padding:14px 16px; margin-bottom:12px; display:none;
+  }
+  .prompt-box.show{display:block;}
+  .prompt-box-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:7px;}
+  .prompt-tag{font-family:var(--mono); font-size:10px; font-weight:800; letter-spacing:0.06em; color:var(--amber); text-transform:uppercase;}
+  .prompt-close{background:none; border:none; color:var(--ink-faint); font-size:19px; line-height:1; cursor:pointer; padding:0 2px;}
+  .prompt-close:hover{color:var(--ink);}
+  .prompt-text{font-size:14.5px; line-height:1.55; color:var(--ink); margin-bottom:9px;}
+  .prompt-shuffle{
+    display:inline-flex; align-items:center; gap:5px; background:none; border:none;
+    color:var(--amber); font-family:var(--mono); font-size:11.5px; font-weight:700; cursor:pointer; padding:0;
+  }
+  .prompt-shuffle svg{width:13px; height:13px;}
+  .prompt-shuffle:hover{opacity:0.75;}
+
   /* ============ KETIK ============ */
   textarea.writer{
     width:100%; min-height:140px; resize:vertical;
@@ -270,6 +281,8 @@
   .review-text{font-size:16px; line-height:1.75;}
   .err{color:var(--rec-red); text-decoration:line-through; text-decoration-thickness:1.5px; text-decoration-color:rgba(191,68,38,0.55);}
   .fix{color:var(--tape-green); font-weight:600;}
+  .case-fix{color:var(--tape-green); font-weight:600;}
+  .ins{color:var(--tape-green); font-weight:600;}
   .correction-cards{display:grid; grid-template-columns:1fr; gap:10px; margin-top:16px;}
   @media (min-width:640px){ .correction-cards{grid-template-columns:1fr 1fr;} }
   .corr{
@@ -279,6 +292,27 @@
   .corr .k{font-family:var(--mono); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:4px;}
   .corr .v{font-size:14px;}
   .corr .v.correct{color:var(--tape-green); font-weight:600;}
+
+  /* ============ KARTU KALIMAT BENAR + TERJEMAHAN ============ */
+  .result-card{
+    border-radius:var(--radius); overflow:hidden; margin-top:16px;
+    border:1px solid var(--line); box-shadow:var(--shadow-card);
+  }
+  .result-seg{padding:14px 16px; position:relative;}
+  .result-seg.en{background:var(--tape-green-dim);}
+  .result-seg + .result-seg{border-top:1px solid var(--line);}
+  .result-seg.id{background:#FFFFFF;}
+  .result-seg.id{border-top:1px solid var(--line);}
+  .result-label{
+    display:flex; align-items:center; gap:6px; margin-bottom:6px;
+    font-family:var(--mono); font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+  }
+  .result-label svg{width:12px; height:12px; flex:none;}
+  .result-seg.en .result-label{color:var(--tape-green);}
+  .result-seg.id .result-label{color:var(--ink-faint);}
+  .result-text{font-size:14px; line-height:1.6; font-weight:400;}
+  .result-seg.en .result-text{color:var(--ink);}
+  .result-seg.id .result-text{color:var(--ink);}
 
   .log-list{margin-top:22px;}
   .log-item{
@@ -680,9 +714,13 @@
 
 <header class="top">
   <div class="top-inner">
-    <button id="installBtn" class="brand" type="button">
+    <div class="brand">
       <span class="mark">LATIH</span>
-      <svg class="install-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+      <span class="sub">log praktik harian</span>
+    </div>
+    <button id="installBtn" class="install-btn" type="button" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+      <span>Instal App</span>
     </button>
     <div class="streak-widget">
       <div class="streak-label">
@@ -765,7 +803,7 @@
       <span class="eyebrow">Backup data</span>
       <div class="sync-row">
         <div class="sync-info">
-          <div class="sync-status" id="exportStatusText">Simpan atau muat cadangan data lewat file.</div>
+          <div class="sync-status" id="exportStatusText">Simpan cadangan data ke file, atau muat data dari file di perangkat lain.</div>
           <div class="sync-filename" id="exportFileInfo"></div>
         </div>
         <div class="sync-actions">
@@ -774,7 +812,7 @@
           <input type="file" id="importFileInput" accept="application/json" style="display:none;">
         </div>
       </div>
-      <p class="sync-hint">Export/Import untuk memindahkan semua data ke perangkat lain.</p>
+      <p class="sync-hint">Export akan mengunduh file .json berisi semua entri Ketik/Voice/Video (termasuk audio & video). Buka LATIH. di perangkat lain lalu Import file itu untuk memindahkan datanya.</p>
     </div>
 
     <div class="panel-head">
@@ -806,7 +844,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 01 - Tulisan</span>
       <h2>Tulis apa saja dalam bahasa Inggris</h2>
-      <p>Tulis bebas, AI akan menandai bagian yang perlu diperbaiki.</p>
+      <p>Tidak perlu sempurna. Tulis seperti biasa bicara, AI akan menandai bagian yang perlu diperbaiki.</p>
     </div>
 
     <div class="subtabs">
@@ -817,6 +855,28 @@
     <!-- ---- LATIHAN ---- -->
     <div class="sub-view active" data-scope="ketik" data-sub="latihan">
       <div class="card">
+        <div class="idea-row">
+          <button type="button" class="idea-btn" id="ketikBtnQuestion" title="Bingung mau nulis apa? (pertanyaan)" aria-label="Generate pertanyaan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.09 9a3 3 0 015.83 1c0 2-3 2-3 4M12 17h.01M12 21a9 9 0 100-18 9 9 0 000 18z"/></svg>
+          </button>
+          <button type="button" class="idea-btn" id="ketikBtnStatement" title="Bingung deskripsikan sesuatu? (1 kalimat)" aria-label="Generate kalimat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5a1 1 0 011-1h4M4 17v2a1 1 0 001 1h4M20 7V5a1 1 0 00-1-1h-4M20 17v2a1 1 0 01-1 1h-4M8 8l4 4-4 4M12 12h6"/></svg>
+          </button>
+          <button type="button" class="idea-btn" id="ketikBtnParagraph" title="Generate 1 paragraf (3-4 kalimat)" aria-label="Generate paragraf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          </button>
+        </div>
+        <div class="prompt-box" id="ketikPromptBox">
+          <div class="prompt-box-head">
+            <span class="prompt-tag" id="ketikPromptTag"></span>
+            <button type="button" class="prompt-close" id="ketikPromptClose" aria-label="Tutup">&times;</button>
+          </div>
+          <div class="prompt-text" id="ketikPromptText"></div>
+          <button type="button" class="prompt-shuffle" id="ketikPromptShuffle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3"/></svg>
+            Ganti
+          </button>
+        </div>
         <textarea class="writer" id="writerInput" placeholder="Tulis dalam Bahasa Inggris di sini..."></textarea>
         <div class="writer-foot">
           <span class="char-count" id="charCount">0 karakter</span>
@@ -859,7 +919,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 02 - Bicara</span>
       <h2>Rekam & cek pelafalanmu</h2>
-      <p>Rekam satu kalimat, AI mengecek tata bahasa dan pengucapanmu.</p>
+      <p>Tekan tombol, ucapkan satu kalimat bahasa Inggris, lepaskan untuk mengirim ke AI. Dicek dua arah: <b>ketepatan makna/tata bahasa</b> dan <b>ketepatan pengucapan</b>.</p>
     </div>
 
     <div class="subtabs">
@@ -870,6 +930,28 @@
     <!-- ---- LATIHAN ---- -->
     <div class="sub-view active" data-scope="voice" data-sub="latihan">
       <div class="card voice-stage">
+        <div class="idea-row" style="width:100%; justify-content:center;">
+          <button type="button" class="idea-btn" id="voiceBtnQuestion" title="Bingung mau ngomong apa? (pertanyaan)" aria-label="Generate pertanyaan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.09 9a3 3 0 015.83 1c0 2-3 2-3 4M12 17h.01M12 21a9 9 0 100-18 9 9 0 000 18z"/></svg>
+          </button>
+          <button type="button" class="idea-btn" id="voiceBtnStatement" title="Bingung deskripsikan sesuatu? (1 kalimat)" aria-label="Generate kalimat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5a1 1 0 011-1h4M4 17v2a1 1 0 001 1h4M20 7V5a1 1 0 00-1-1h-4M20 17v2a1 1 0 01-1 1h-4M8 8l4 4-4 4M12 12h6"/></svg>
+          </button>
+          <button type="button" class="idea-btn" id="voiceBtnParagraph" title="Generate 1 paragraf (3-4 kalimat)" aria-label="Generate paragraf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          </button>
+        </div>
+        <div class="prompt-box" id="voicePromptBox" style="width:100%; text-align:left;">
+          <div class="prompt-box-head">
+            <span class="prompt-tag" id="voicePromptTag"></span>
+            <button type="button" class="prompt-close" id="voicePromptClose" aria-label="Tutup">&times;</button>
+          </div>
+          <div class="prompt-text" id="voicePromptText"></div>
+          <button type="button" class="prompt-shuffle" id="voicePromptShuffle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3"/></svg>
+            Ganti
+          </button>
+        </div>
         <button class="rec-btn" id="recBtn" aria-label="Rekam suara">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
         </button>
@@ -909,7 +991,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 03 - Video harian</span>
       <h2>Satu video, setiap hari</h2>
-      <p>Rekam atau unggah video, dianalisis sama seperti Voice.</p>
+      <p>Rekam lewat webcam atau unggah dari perangkat. Karena video mengandalkan audio, cara dianalisisnya sama seperti Voice: tata bahasa/makna + detail pengucapan.</p>
     </div>
 
     <div class="subtabs">
@@ -925,11 +1007,33 @@
         </div>
         <div>
           <b class="mono" style="font-size:13px;" id="videoTodayLabel">Video hari ini belum diisi</b>
-          <div class="video-note" id="videoTodayNote">Sisa waktu sebelum masuk rekap harian.</div>
+          <div class="video-note" id="videoTodayNote">Sisa waktu sampai akhir hari - status "belum" akan ikut masuk ke rekap harian.</div>
         </div>
         <div class="video-preview-wrap" id="videoPreviewWrap" style="display:none;">
           <video id="videoPreview" style="width:100%; max-width:420px; border-radius:12px; background:#000; display:block;" autoplay muted playsinline></video>
           <div class="rec-badge" id="recBadge"><span class="rec-dot"></span>REC</div>
+        </div>
+        <div class="idea-row" style="width:100%; justify-content:center;">
+          <button type="button" class="idea-btn" id="videoBtnQuestion" title="Bingung mau ngomong apa? (pertanyaan)" aria-label="Generate pertanyaan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.09 9a3 3 0 015.83 1c0 2-3 2-3 4M12 17h.01M12 21a9 9 0 100-18 9 9 0 000 18z"/></svg>
+          </button>
+          <button type="button" class="idea-btn" id="videoBtnStatement" title="Bingung deskripsikan sesuatu? (1 kalimat)" aria-label="Generate kalimat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5a1 1 0 011-1h4M4 17v2a1 1 0 001 1h4M20 7V5a1 1 0 00-1-1h-4M20 17v2a1 1 0 01-1 1h-4M8 8l4 4-4 4M12 12h6"/></svg>
+          </button>
+          <button type="button" class="idea-btn" id="videoBtnParagraph" title="Generate 1 paragraf (3-4 kalimat)" aria-label="Generate paragraf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          </button>
+        </div>
+        <div class="prompt-box" id="videoPromptBox" style="width:100%; text-align:left;">
+          <div class="prompt-box-head">
+            <span class="prompt-tag" id="videoPromptTag"></span>
+            <button type="button" class="prompt-close" id="videoPromptClose" aria-label="Tutup">&times;</button>
+          </div>
+          <div class="prompt-text" id="videoPromptText"></div>
+          <button type="button" class="prompt-shuffle" id="videoPromptShuffle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3"/></svg>
+            Ganti
+          </button>
         </div>
         <div class="video-actions">
           <button class="btn btn-primary" id="btnWebcam">
@@ -986,7 +1090,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 05 - Kamus pribadi</span>
       <h2>Semua kata yang sudah kamu pakai dengan benar</h2>
-      <p>Terkumpul otomatis dari kata yang kamu pakai dengan benar.</p>
+      <p>Dikumpulkan otomatis dari kata-kata yang tidak ditandai salah di Ketik, Voice, dan Video - lalu diterjemahkan ke Bahasa Indonesia.</p>
     </div>
 
     <div class="stat-row">
@@ -1011,7 +1115,7 @@
     <div class="panel-head">
       <span class="eyebrow">Modul 04 - Rekap</span>
       <h2>Ringkasan progres belajar</h2>
-      <p>Dibuat otomatis, atau tekan refresh untuk membuat ulang.</p>
+      <p>Dibuat otomatis setiap akhir hari & akhir minggu - atau tekan refresh untuk membuat ulang kapan saja.</p>
     </div>
 
     <div class="segmented">
@@ -1505,6 +1609,259 @@
   }
 
   // ==================================================================
+  // IDE LATIHAN - pool pertanyaan (dijawab deskriptif dlm Bhs Inggris)
+  // & pool kalimat (diterjemahkan ke Bhs Inggris). Dipakai bareng di
+  // Ketik/Voice/Video lewat initIdeaPrompts(prefix) di bawah.
+  // ==================================================================
+  var IDEA_QUESTION_POOL = [
+    'Apa hal kecil yang bikin harimu lebih baik hari ini?',
+    'Ceritakan satu kebiasaan yang ingin kamu ubah tahun ini.',
+    'Apa yang paling kamu syukuri minggu ini?',
+    'Ceritakan tempat favoritmu untuk menenangkan pikiran.',
+    'Apa tantangan terbesar yang kamu hadapi belakangan ini di kuliah?',
+    'Kalau punya waktu luang sehari penuh, kamu mau ngapain?',
+    'Apa hal baru yang kamu pelajari minggu ini?',
+    'Ceritakan pengalaman kamu belajar sesuatu yang sulit.',
+    'Apa mimpi atau tujuan jangka panjangmu?',
+    'Bagaimana caramu menghadapi hari yang berat?',
+    'Ceritakan makanan favoritmu dan kenapa kamu suka itu.',
+    'Apa rutinitas paginya kamu biasanya?',
+    'Ceritakan tentang teman dekatmu, orangnya seperti apa?',
+    'Kalau bisa pergi ke satu tempat sekarang juga, kamu mau kemana?',
+    'Apa hobi yang baru-baru ini kamu mulai atau ingin kamu coba?',
+    'Ceritakan pengalaman paling berkesan minggu ini.',
+    'Apa yang biasanya kamu lakukan buat menghilangkan stres?',
+    'Ceritakan tentang film atau lagu yang lagi kamu suka.',
+    'Apa rencana kamu buat akhir pekan ini?',
+    'Ceritakan hal yang bikin kamu bangga sama diri sendiri belakangan ini.',
+    'Apa perbedaan dirimu sekarang dibanding setahun lalu?',
+    'Ceritakan tentang keluarga kamu secara singkat.',
+    'Apa pelajaran atau mata kuliah favoritmu, dan kenapa?',
+    'Kalau kamu bisa belajar satu skill baru instan, kamu pilih apa?',
+    'Ceritakan pengalaman kerja kelompok atau proyek yang berkesan.',
+    'Apa yang biasanya kamu lakukan sebelum tidur?',
+    'Ceritakan tentang kota atau daerah tempat kamu tinggal.',
+    'Apa target kamu buat bulan depan?',
+    'Ceritakan pengalaman pertama kali kamu naik kendaraan umum sendiri.',
+    'Apa hal yang paling kamu rindukan dari masa kecil?',
+    'Ceritakan tentang cuaca hari ini di tempatmu.',
+    'Apa aplikasi atau website yang paling sering kamu buka?',
+    'Ceritakan momen kamu ngerasa lega setelah menyelesaikan tugas berat.',
+    'Apa nasihat yang pernah diberikan orang tuamu dan masih kamu ingat?',
+    'Ceritakan hewan peliharaan favoritmu atau yang ingin kamu punya.',
+    'Apa kebiasaan unik yang kamu punya?',
+    'Ceritakan tentang guru atau dosen yang paling berkesan buatmu.',
+    'Apa hal yang bikin kamu semangat bangun pagi?',
+    'Ceritakan pengalaman kamu belajar sesuatu secara otodidak.',
+    'Apa perubahan kecil yang ingin kamu lakukan di rumah?',
+    'Ceritakan tentang perjalanan/trip yang paling kamu ingat.',
+    'Apa yang kamu lakukan kalau lagi bosan?',
+    'Ceritakan tentang tugas kuliah paling sulit yang pernah kamu kerjakan.',
+    'Apa arti kesuksesan menurutmu?',
+    'Ceritakan kebiasaan sehat yang sedang kamu coba jalani.',
+    'Apa yang kamu suka dari jurusan/bidang yang kamu ambil sekarang?'
+  ];
+  var IDEA_STATEMENT_POOL = [
+    'Saya biasanya bangun jam enam pagi untuk salat subuh.',
+    'Kemarin saya lupa membawa charger laptop ke kampus.',
+    'Cuaca hari ini sangat panas dan lembap.',
+    'Dia sedang belajar untuk ujian akhir minggu depan.',
+    'Saya sudah menyelesaikan tugas itu sebelum jam sepuluh malam.',
+    'Kami akan pergi ke perpustakaan setelah kelas selesai.',
+    'Adik saya suka bermain game di akhir pekan.',
+    'Saya sedang mencoba kebiasaan tidur lebih awal.',
+    'Dosen saya menjelaskan materi itu dengan sangat jelas.',
+    'Saya harus mengerjakan revisi gambar sebelum jam lima sore.',
+    'Ibu saya sedang memasak makan malam di dapur.',
+    'Saya belum pernah naik pesawat sebelumnya.',
+    'Tahun depan saya berencana untuk magang di perusahaan konstruksi.',
+    'Dia terlambat datang karena macet parah di jalan.',
+    'Saya lebih suka minum kopi daripada teh di pagi hari.',
+    'Kami sedang mendiskusikan proyek kelompok lewat grup WhatsApp.',
+    'Saya lupa menyimpan file itu sebelum laptop saya mati.',
+    'Teman saya baru saja pindah ke kota lain untuk bekerja.',
+    'Saya sedang belajar menggunakan aplikasi baru untuk mengedit video.',
+    'Dia selalu membawa payung kemanapun dia pergi.',
+    'Saya menghabiskan sore ini untuk membaca buku di kamar.',
+    'Kami berencana untuk liburan ke pantai bulan depan.',
+    'Saya baru sadar deadline tugas itu sudah lewat dua hari.',
+    'Dia sedang memperbaiki motornya yang mogok tadi pagi.',
+    'Saya ingin belajar bahasa Inggris lebih serius mulai bulan ini.',
+    'Hujan turun sangat deras sepanjang malam kemarin.',
+    'Saya sudah mengirim email itu tapi belum ada balasan.',
+    'Kakak saya bekerja sebagai perawat di rumah sakit daerah.',
+    'Saya biasanya mengerjakan tugas kuliah di perpustakaan kampus.',
+    'Dia lupa mematikan lampu kamar sebelum berangkat kerja.',
+    'Saya sedang menabung untuk membeli laptop baru.',
+    'Kami menunggu bus selama hampir tiga puluh menit tadi pagi.',
+    'Saya lebih nyaman belajar sambil mendengarkan musik.',
+    'Dia baru saja menyelesaikan skripsinya minggu lalu.',
+    'Saya harus mengganti jadwal rapat karena ada urusan mendadak.',
+    'Paman saya tinggal di desa dan bekerja sebagai petani.',
+    'Saya mencoba resep baru untuk makan malam hari ini.',
+    'Dia sering begadang untuk menyelesaikan tugas kantornya.',
+    'Saya menaruh kunci motor di atas meja tadi malam.',
+    'Kami akan bertemu di kafe dekat kampus besok siang.',
+    'Saya masih bingung memilih topik untuk tugas akhir.',
+    'Dia menghabiskan akhir pekan untuk membersihkan rumah.',
+    'Saya lupa mematikan alarm sehingga bangun kesiangan.',
+    'Wifi di kosan saya sering mati tiba-tiba saat malam hari.',
+    'Saya sedang menunggu paket yang saya pesan minggu lalu.',
+    'Dia bilang akan datang lebih awal besok pagi.'
+  ];
+  var IDEA_PARAGRAPH_POOL = [
+    'Kemarin saya bangun kesiangan karena lupa memasang alarm. Saya buru-buru mandi dan langsung berangkat ke kampus tanpa sarapan. Untungnya dosen belum masuk kelas saat saya tiba. Setelah kelas selesai, saya baru sempat makan siang di kantin.',
+    'Setiap pagi saya biasanya jalan kaki ke warung dekat rumah untuk membeli sarapan. Saya suka nasi uduk dengan telur dadar dan kerupuk. Setelah itu saya duduk sebentar sambil menikmati udara pagi. Baru setelah itu saya bersiap-siap untuk kuliah.',
+    'Minggu lalu saya mengerjakan tugas kelompok bersama tiga teman saya. Kami berkumpul di perpustakaan kampus selama hampir empat jam. Salah satu teman saya membawa laptop dan kami bergantian mengetik. Akhirnya tugas itu selesai tepat sebelum deadline.',
+    'Cuaca di kota saya belakangan ini sering berubah-ubah. Pagi hari biasanya cerah, tapi menjelang sore langit tiba-tiba mendung. Kadang hujan turun sangat deras hanya dalam waktu singkat. Karena itu saya selalu membawa payung kemanapun saya pergi.',
+    'Saya sedang mencoba kebiasaan baru, yaitu menulis jurnal setiap malam sebelum tidur. Saya menuliskan apa saja yang terjadi sepanjang hari, baik yang menyenangkan maupun yang sulit. Kebiasaan ini membantu saya merasa lebih tenang. Saya berharap bisa terus melakukannya sampai akhir tahun.',
+    'Akhir pekan kemarin saya dan keluarga pergi ke rumah nenek di desa. Perjalanannya memakan waktu sekitar tiga jam naik mobil. Sesampainya di sana kami makan bersama dan bercerita banyak hal. Saya merasa sangat rindu dengan suasana desa yang tenang seperti itu.',
+    'Saya baru saja memulai proyek kecil untuk membuat aplikasi sederhana. Setiap malam saya belajar sedikit demi sedikit lewat video tutorial. Kadang saya menemukan error yang sulit dan harus mencari solusinya cukup lama. Meskipun begitu, saya senang karena bisa belajar hal baru setiap harinya.',
+    'Teman sekamar saya sedang sibuk mempersiapkan sidang skripsinya minggu depan. Dia sering begadang untuk merevisi bab terakhir tulisannya. Saya membantu dia dengan menyiapkan makanan ringan supaya dia tidak lupa makan. Saya berharap sidangnya nanti berjalan lancar.',
+    'Bulan ini saya mencoba mengatur keuangan dengan lebih disiplin. Saya mencatat semua pengeluaran harian di aplikasi catatan keuangan. Ternyata saya sering menghabiskan uang untuk jajan tanpa sadar. Sekarang saya berusaha menabung sedikit demi sedikit setiap minggunya.',
+    'Kemarin motor saya tiba-tiba mogok di tengah jalan menuju kampus. Untungnya ada bengkel kecil tidak jauh dari lokasi saya berhenti. Montirnya bilang masalahnya ada di bagian karburator. Setelah diperbaiki sekitar satu jam, saya bisa melanjutkan perjalanan lagi.',
+    'Saya dan beberapa teman kuliah berencana membuat acara nonton bareng di akhir bulan ini. Kami sudah membuat daftar film yang ingin ditonton bersama. Salah satu teman akan menyediakan tempat di kosnya yang cukup luas. Kami juga sepakat untuk patungan membeli camilan dan minuman.',
+    'Dosen pembimbing saya meminta saya merevisi bab dua skripsi minggu ini. Saya merasa cukup kewalahan karena banyak bagian yang harus diperbaiki. Namun saya mencoba mengerjakannya sedikit demi sedikit setiap hari. Saya berharap revisi ini bisa selesai sebelum jadwal bimbingan berikutnya.',
+    'Ibu saya baru saja belajar menggunakan aplikasi belanja online untuk pertama kalinya. Awalnya dia sedikit bingung dengan cara memasukkan alamat dan metode pembayaran. Saya membantu menjelaskan langkah-langkahnya satu per satu. Sekarang dia sudah mulai terbiasa dan sering berbelanja kebutuhan dapur secara online.',
+    'Saya baru saja pindah kos ke tempat yang lebih dekat dengan kampus. Kamar barunya lebih kecil, tapi suasananya jauh lebih tenang dibanding kos lama. Saya juga jadi punya lebih banyak waktu tidur karena tidak perlu berangkat terlalu pagi. Sejauh ini saya cukup puas dengan keputusan pindah ini.',
+    'Setiap sore saya biasanya menyempatkan diri untuk berolahraga ringan di sekitar kompleks rumah. Saya suka jalan cepat sambil mendengarkan podcast tentang pengembangan diri. Setelah itu saya biasanya meregangkan badan sebentar sebelum mandi. Kebiasaan kecil ini cukup membantu menjaga stamina saya selama kuliah.',
+    'Minggu lalu laptop saya tiba-tiba mengalami masalah dan tidak bisa menyala. Saya panik karena banyak tugas penting yang belum sempat saya cadangkan. Untungnya seorang teman membantu memperbaikinya dan semua data berhasil diselamatkan. Sejak saat itu saya jadi lebih rajin membackup data secara berkala.',
+    'Saya sedang belajar memasak beberapa menu sederhana selama tinggal jauh dari orang tua. Awalnya saya sering gagal, misalnya nasi yang terlalu lembek atau sayur yang terlalu asin. Sekarang saya mulai terbiasa dan bisa memasak beberapa menu favorit sendiri. Saya merasa cukup bangga bisa lebih mandiri dalam hal ini.',
+    'Kampus saya mengadakan seminar tentang dunia kerja untuk mahasiswa tingkat akhir. Saya memutuskan untuk ikut karena penasaran dengan persiapan yang dibutuhkan setelah lulus. Pembicara menjelaskan banyak hal tentang cara membuat CV dan menghadapi wawancara kerja. Setelah seminar itu saya jadi lebih semangat mempersiapkan diri untuk masa depan.',
+    'Adik saya sedang belajar naik sepeda tanpa roda bantuan untuk pertama kalinya. Setiap sore ayah saya menemaninya berlatih di halaman rumah. Beberapa kali dia terjatuh, tapi selalu semangat untuk mencoba lagi. Akhir pekan lalu dia akhirnya berhasil naik sepeda sendiri tanpa dipegangi.',
+    'Saya baru saja menonton dokumenter tentang perubahan iklim yang cukup membuka wawasan. Film itu menjelaskan dampak sampah plastik terhadap lingkungan laut. Setelah menontonnya saya jadi lebih sadar untuk mengurangi penggunaan plastik sekali pakai. Saya juga mulai membawa botol minum sendiri kemanapun saya pergi.'
+  ];
+  function shuffleArr(arr){
+    var a = arr.slice();
+    for(var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  // Daftar statis di atas cuma dipakai sebagai SEED (isi awal) sebelum AI
+  // sempat generate batch pertama, atau sebagai fallback kalau generate gagal
+  // (mis. belum ada koneksi). Begitu batch dari AI berhasil disimpan lokal,
+  // versi AI itulah yang dipakai terus, dan otomatis diganti batch baru lagi
+  // kalau mau habis - jadi in the long run gak akan ada pengulangan.
+  var IDEA_POOL_SCHEMA = {
+    type:'OBJECT',
+    properties:{ items:{type:'ARRAY', items:{type:'STRING'}} },
+    required:['items']
+  };
+  var IDEA_TYPES = {
+    question: {
+      seed: IDEA_QUESTION_POOL, count: 50, metaId: 'ideaPool_question',
+      prompt: function(){
+        return 'Kamu asisten pembuat materi latihan menulis bahasa Inggris untuk pelajar pemula asal Indonesia.\n' +
+          'Buatkan 50 pertanyaan RINGAN dalam Bahasa Indonesia, seputar kehidupan sehari-hari, kebiasaan, kuliah/kerja, keluarga, hobi, perasaan, dan rencana - hal-hal umum yang mudah diceritakan.\n' +
+          'Setiap pertanyaan harus bisa dijawab dengan 1 kalimat atau 1 paragraf singkat dalam Bahasa Inggris oleh pelajar pemula, jangan terlalu berat/filosofis/teknis.\n' +
+          'Semua pertanyaan harus unik satu sama lain (topik & kalimat beda-beda), pakai bahasa santai sehari-hari.\n' +
+          'Balas HANYA array items berisi 50 string pertanyaan, tanpa nomor, tanpa penjelasan tambahan.';
+      }
+    },
+    statement: {
+      seed: IDEA_STATEMENT_POOL, count: 50, metaId: 'ideaPool_statement',
+      prompt: function(){
+        return 'Kamu asisten pembuat materi latihan menerjemahkan untuk pelajar bahasa Inggris pemula asal Indonesia.\n' +
+          'Buatkan 50 kalimat pernyataan sederhana dalam Bahasa Indonesia tentang aktivitas/kejadian sehari-hari (rutinitas, kuliah, kerja, keluarga, cuaca, teknologi, dll), dengan variasi tenses (sekarang, lampau, akan datang, sedang berlangsung).\n' +
+          'Setiap kalimat berdiri sendiri, cukup pendek (satu kalimat saja), dan mudah diterjemahkan ke Bahasa Inggris oleh pemula.\n' +
+          'Semua kalimat harus unik satu sama lain.\n' +
+          'Balas HANYA array items berisi 50 string kalimat, tanpa nomor, tanpa penjelasan tambahan.';
+      }
+    },
+    paragraph: {
+      seed: IDEA_PARAGRAPH_POOL, count: 25, metaId: 'ideaPool_paragraph',
+      prompt: function(){
+        return 'Kamu asisten pembuat materi latihan menerjemahkan untuk pelajar bahasa Inggris pemula asal Indonesia.\n' +
+          'Buatkan 25 paragraf pendek dalam Bahasa Indonesia, masing-masing terdiri dari 3-4 kalimat yang saling berhubungan (satu cerita/kejadian singkat sehari-hari: rutinitas, kuliah, keluarga, teman, kerja, dll), dengan variasi tenses.\n' +
+          'Setiap paragraf ditulis sebagai SATU string utuh (kalimat-kalimatnya digabung jadi satu paragraf, BUKAN array bersarang).\n' +
+          'Semua paragraf harus unik satu sama lain (topik & cerita beda-beda), pakai bahasa santai sehari-hari.\n' +
+          'Balas HANYA array items berisi 25 string paragraf, tanpa nomor, tanpa penjelasan tambahan.';
+      }
+    }
+  };
+
+  var ideaPools = {};        // pool aktif yang lagi dipakai per tipe (dari lokal AI, atau seed kalau belum ada)
+  var ideaBags = {};         // sisa "kartu" yang belum diambil di siklus kocokan saat ini, per tipe
+  var ideaRegenerating = {}; // flag biar gak generate dobel bersamaan buat tipe yang sama
+
+  async function loadIdeaPools(){
+    for(var key in IDEA_TYPES){
+      try{
+        var rec = await idbGetMeta(IDEA_TYPES[key].metaId);
+        ideaPools[key] = (rec && rec.items && rec.items.length) ? rec.items : IDEA_TYPES[key].seed;
+      }catch(e){
+        ideaPools[key] = IDEA_TYPES[key].seed;
+      }
+    }
+  }
+  loadIdeaPools();
+
+  // Minta batch baru ke Gemini, simpan ke IndexedDB (menimpa/menghapus batch lama
+  // yang tersimpan dengan id yang sama), lalu langsung pakai batch baru itu buat
+  // kocokan berikutnya (bag lama ikut dibuang, gak nunggu habis dulu).
+  async function regenerateIdeaPool(name){
+    if(ideaRegenerating[name]) return;
+    ideaRegenerating[name] = true;
+    try{
+      var cfg = IDEA_TYPES[name];
+      var res = await geminiGenerate([{text: cfg.prompt()}], IDEA_POOL_SCHEMA);
+      var items = (res.items || []).map(function(s){ return (s || '').trim(); }).filter(Boolean);
+      if(items.length >= Math.min(10, cfg.count)){
+        ideaPools[name] = items;
+        ideaBags[name] = shuffleArr(items);
+        await idbSetMeta(cfg.metaId, {items: items, ts: Date.now()});
+      }
+    }catch(err){
+      console.error('gagal generate batch ide (' + name + '):', err.message);
+      // gagal (mis. offline) -> biarkan pool yang sekarang tetap dipakai, gak ganggu UX
+    }finally{
+      ideaRegenerating[name] = false;
+    }
+  }
+
+  function nextIdeaItem(name){
+    var pool = ideaPools[name] || IDEA_TYPES[name].seed;
+    if(!ideaBags[name] || !ideaBags[name].length){
+      ideaBags[name] = shuffleArr(pool);
+    }
+    var item = ideaBags[name].pop();
+    // sisa kartu tinggal dikit -> mulai generate batch baru di BELAKANG LAYAR
+    // (gak nge-block tampilan), supaya begitu bag ini habis, batch baru udah siap.
+    if(ideaBags[name].length <= 5) regenerateIdeaPool(name);
+    return item;
+  }
+
+  function initIdeaPrompts(prefix){
+    var box = document.getElementById(prefix + 'PromptBox');
+    var tag = document.getElementById(prefix + 'PromptTag');
+    var text = document.getElementById(prefix + 'PromptText');
+    var btnQ = document.getElementById(prefix + 'BtnQuestion');
+    var btnS = document.getElementById(prefix + 'BtnStatement');
+    var btnP = document.getElementById(prefix + 'BtnParagraph');
+    var btnShuffle = document.getElementById(prefix + 'PromptShuffle');
+    var btnClose = document.getElementById(prefix + 'PromptClose');
+    if(!box || !btnQ || !btnS) return;
+    var current = null; // {name, tagLabel}
+    function show(name, tagLabel){
+      current = {name: name, tagLabel: tagLabel};
+      text.textContent = nextIdeaItem(name);
+      tag.textContent = tagLabel;
+      box.classList.add('show');
+    }
+    btnQ.onclick = function(){ show('question', 'Pertanyaan \u00b7 jawab dalam Bahasa Inggris'); };
+    btnS.onclick = function(){ show('statement', 'Kalimat \u00b7 terjemahkan ke Bahasa Inggris'); };
+    if(btnP) btnP.onclick = function(){ show('paragraph', 'Paragraf (3-4 kalimat) \u00b7 terjemahkan ke Bahasa Inggris'); };
+    if(btnShuffle) btnShuffle.onclick = function(){ if(current) show(current.name, current.tagLabel); };
+    if(btnClose) btnClose.onclick = function(){ box.classList.remove('show'); current = null; };
+  }
+  initIdeaPrompts('ketik');
+  initIdeaPrompts('voice');
+  initIdeaPrompts('video');
+
+  // ==================================================================
   // KETIK (TULISAN)
   // ==================================================================
   var writer = document.getElementById('writerInput');
@@ -1520,34 +1877,145 @@
     return 'Kamu tutor bahasa Inggris untuk pelajar Indonesia. Periksa grammar, tenses, dan kosakata pada kalimat berikut secara teliti.\n\n' +
       'KALIMAT PENGGUNA:\n"' + text + '"\n\n' +
       (hist ? ('RIWAYAT TULISAN TERAKHIR (untuk mendeteksi pola kesalahan berulang):\n' + hist + '\n\n') : '') +
+      'CATATAN KHUSUS SOAL TANDA KUTIP: kalau di dalam kalimat pengguna ada kata/frasa yang diapit tanda kutip (\' \' atau " "), itu artinya pengguna SENGAJA menulis begitu karena belum tahu padanan bahasa Inggrisnya (biasanya kata itu bahasa Indonesia, mis. "tugas", "yang"). Perlakukan kata di dalam kutip itu SAMA seperti kata lain yang salah/perlu diperbaiki, cari padanan bahasa Inggris yang PALING PAS sesuai konteks kalimat secara keseluruhan (bukan terjemahan kata-per-kata yang berdiri sendiri), lalu buatkan diff type "error" untuk menggantinya (wrong = kata dalam kutip itu, right = padanan Inggrisnya) dan hilangkan tanda kutipnya di "right" pada koreksi kalimat. JANGAN memperlakukan potongan kalimat yang mengandung kata berkutip itu sebagai kalimat terpisah/berdiri sendiri terlepas dari kalimat utuhnya — tetap baca dan pahami maksud SATU kalimat penuh secara utuh dari awal sampai akhir supaya padanan katanya nyambung dengan bagian sebelum & sesudahnya.\n\n' +
       'Balas dalam format JSON sesuai skema. Field:\n' +
       '- hasError: true/false.\n' +
-      '- diffs: array {wrong, right} berisi potongan teks PERSIS seperti di kalimat asli yang salah, dan perbaikannya. Kosongkan jika tidak ada kesalahan.\n' +
-      '- corrections: array {title, detail} penjelasan tiap kesalahan dalam Bahasa Indonesia yang ramah untuk pemula.\n' +
+      '- correctedSentence: ISI FIELD INI PALING PERTAMA, sebelum "diffs". Susun SATU kalimat bahasa Inggris FINAL yang benar-benar baku, gramatikal 100% benar, enak dibaca, dan TIDAK mengandung tanda kutip apapun lagi (semua kata yang tadinya dalam tanda kutip di kalimat pengguna sudah diganti padanan Inggrisnya di sini, sesuai catatan soal tanda kutip di atas). Kalimat ini adalah SUMBER KEBENARAN UTAMA yang ditampilkan ke pengguna sebagai jawaban akhir "kalimat yang sudah benar", jadi pastikan benar-benar rapi dan masuk akal dari awal sampai akhir.\n' +
+      '- diffs: array objek {wrong, right, type, afterWord} yang MENJELASKAN PERUBAHAN dari kalimat asli menuju "correctedSentence" di atas. WAJIB: kalau semua diffs ini diterapkan satu-satu ke kalimat asli sesuai definisi type di bawah, hasilnya harus SAMA PERSIS kata demi kata dengan "correctedSentence" (kecuali huruf besar/kecil di awal kalimat). ATURAN PENTING:\n' +
+      '  1) type = "error": kata yang ADA di kalimat tapi salah (grammar/tenses/kosakata/ejaan/preposisi salah, TERMASUK kata dalam tanda kutip yang perlu dicarikan padanan Inggrisnya seperti dijelaskan di atas). "wrong" HARUS berupa satu kata tunggal saja (atau potongan sekecil mungkin) persis seperti tertulis di kalimat asli (untuk kata berkutip, "wrong" cukup isi kata di dalamnya TANPA tanda kutip), JANGAN gabungkan beberapa kata sekaligus jadi satu diff, dan JANGAN sertakan kata yang sudah benar di dalam "wrong". "afterWord" isi string kosong "".\n' +
+      '  2) type = "case": HANYA jika satu-satunya masalah pada kata itu adalah huruf besar/kecil (contoh: "i" seharusnya "I"), ejaan katanya sendiri sudah benar. "right" cukup versi huruf besar/kecilnya yang benar. "afterWord" isi string kosong "".\n' +
+      '  3) type = "missing": PENTING, pakai ini kalau ada KATA YANG HILANG/KURANG dari kalimat (misal lupa taruh "the", "a", "to", "is", dll) padahal kata-kata di sekitarnya sudah benar dan TIDAK PERLU diubah sama sekali. Untuk kasus ini: "wrong" isi string kosong "", "right" isi kata yang hilang itu saja, dan "afterWord" isi SATU kata yang PERSIS ada di kalimat asli (ejaan & huruf besar/kecilnya sama persis), yaitu kata yang letaknya TEPAT SEBELUM posisi kata yang hilang seharusnya disisipkan. Kalau kata yang hilang seharusnya ada di paling awal kalimat (sebelum kata pertama), isi "afterWord" dengan string kosong "".\n' +
+      '  4) JANGAN PERNAH mengubah kasus kata hilang jadi type "error" dengan menulis ulang satu kata yang sudah benar menjadi dua kata (contoh yang SALAH: wrong:"office", right:"the office" — ini salah karena kata "office" sendiri sudah benar dan jadi ikut tercoret padahal tidak perlu). Kata yang sudah benar harus TETAP dibiarkan apa adanya; kalau cuma kurang satu kata di depan/tengahnya, WAJIB pakai type "missing", bukan "error".\n' +
+      '  5) UNTUK "afterWord" pada type "missing": WAJIB pilih kata yang TIDAK sedang diperbaiki oleh diff lain (bukan kata yang muncul sebagai "wrong" di diff lain), supaya posisinya tidak bentrok/tertumpuk dengan koreksi lain. Kalau kata di sekitar titik sisip semuanya sedang dikoreksi, pilih kata benar terdekat lain sebagai "afterWord" (boleh mundur lebih jauh dari kalimat, yang penting kata itu tetap apa adanya di kalimat asli maupun hasil akhir).\n' +
+      '  6) Urutkan seluruh isi array "diffs" PERSIS sesuai urutan kemunculan masalahnya di kalimat asli, dari kiri ke kanan, tanpa loncat-loncat.\n' +
+      '  7) Setiap kata/masalah dapat diffnya sendiri-sendiri secara terpisah, jangan digabung jadi satu potongan panjang. JANGAN buat diff untuk kata yang sudah benar sama sekali.\n' +
+      '  8) WAJIB DICEK ULANG sebelum menjawab: terapkan sendiri seluruh "diffs" ke kalimat asli di kepalamu, lalu bandingkan hasilnya kata demi kata dengan "correctedSentence". Kalau BEDA (ada kata kurang, lebih, dobel, atau ketuker), PERBAIKI "diffs"-nya (bukan "correctedSentence"-nya) sampai keduanya persis sama. Jangan sampai kirim jawaban yang "correctedSentence"-nya benar tapi "diffs"-nya tidak menghasilkan kalimat yang sama.\n' +
+      '  Kosongkan array jika tidak ada kesalahan sama sekali.\n' +
+      '- corrections: array {title, detail} penjelasan untuk diff bertype "error" DAN "missing" (jangan buat penjelasan untuk diff bertype "case"), dalam Bahasa Indonesia yang ramah untuk pemula.\n' +
       '- note: jika kesalahan ini mirip pola di riwayat, jelaskan pola itu 1-2 kalimat Bahasa Indonesia; jika tidak ada pola jelas, isi string kosong "".\n' +
-      '- meta: ringkasan singkat, contoh "2 koreksi \u00b7 simple past tense" atau "tidak ada koreksi - bagus!" jika tidak ada kesalahan.';
+      '- translation: terjemahan Bahasa Indonesia dari "correctedSentence".\n' +
+      '- meta: ringkasan singkat, contoh "2 koreksi \u00b7 simple past tense" atau "tidak ada koreksi - bagus!" jika tidak ada kesalahan sama sekali (kesalahan huruf besar/kecil saja tidak dihitung sebagai koreksi).';
   }
   var KETIK_SCHEMA = {
     type:'OBJECT',
     properties:{
       hasError:{type:'BOOLEAN'},
-      diffs:{type:'ARRAY', items:{type:'OBJECT', properties:{wrong:{type:'STRING'}, right:{type:'STRING'}}, required:['wrong','right']}},
+      correctedSentence:{type:'STRING'},
+      diffs:{type:'ARRAY', items:{type:'OBJECT', properties:{wrong:{type:'STRING'}, right:{type:'STRING'}, type:{type:'STRING', enum:['error','case','missing']}, afterWord:{type:'STRING'}}, required:['wrong','right','type','afterWord']}},
       corrections:{type:'ARRAY', items:{type:'OBJECT', properties:{title:{type:'STRING'}, detail:{type:'STRING'}}, required:['title','detail']}},
       note:{type:'STRING'},
+      translation:{type:'STRING'},
       meta:{type:'STRING'}
     },
-    required:['hasError','diffs','corrections','note','meta']
+    required:['hasError','correctedSentence','diffs','corrections','note','translation','meta']
   };
 
-  function buildMarkedHtml(text, diffs){
-    var html = escapeHtml(text);
+  function isWordChar(ch){ return !!ch && /[A-Za-z0-9]/.test(ch); }
+
+  // Cari kemunculan `w` di `text` mulai dari posisi `from`, TAPI hanya terima
+  // kemunculan yang jadi KATA UTUH (bukan potongan yang nyempil di tengah kata
+  // lain, mis. "la" jangan sampai match di dalam "late"). Karakter tepat
+  // sebelum & sesudah harus bukan huruf/angka supaya dianggap kata berdiri
+  // sendiri.
+  function findWholeWord(text, w, from){
+    var searchFrom = from;
+    while(true){
+      var idx = text.indexOf(w, searchFrom);
+      if(idx === -1) return -1;
+      var before = idx === 0 ? '' : text.charAt(idx - 1);
+      var after = text.charAt(idx + w.length);
+      if(!isWordChar(before) && !isWordChar(after)) return idx;
+      searchFrom = idx + 1;
+    }
+  }
+
+  function resolveDiffMatches(text, diffs){
+    // Cari posisi tiap diff di TEKS ASLI. Dipakai bareng oleh buildMarkedHtml
+    // dan buildCorrectedText supaya logikanya konsisten satu tempat saja.
+    //
+    // TAHAP 1: proses dulu semua diff type "error"/"case" (kata yang benar-benar
+    // ada di kalimat & mau diganti), dengan cursor yang MAJU TERUS supaya kata
+    // berulang (mis. "go", "home", "give") jatuh di kemunculan yang tepat sesuai
+    // urutannya. Posisi yang sudah "dipakai" di sini dicatat di `reserved`.
+    //
+    // TAHAP 2: baru proses diff type "missing" (kata yang mau disisipkan).
+    // Saat mencari kata patokan ("afterWord"), kemunculan yang PERSIS sama
+    // dengan salah satu posisi yang sudah "dipakai" di tahap 1 dilewati/skip.
+    // Ini mencegah sisipan nyasar ke kata yang justru sedang diganti oleh
+    // diff lain (kata patokan yang sama muncul di dua diff berbeda), yang
+    // sebelumnya bikin sisipan jatuh di posisi yang salah/tertumpuk.
+    var matches = [];
+    var reserved = [];
+    var cursor = 0;
     (diffs||[]).forEach(function(d){
-      var w = escapeHtml(d.wrong), r = escapeHtml(d.right);
+      if(d.type === 'missing') return;
+      var w = d.wrong;
       if(!w) return;
-      var idx = html.indexOf(w);
+      var idx = findWholeWord(text, w, cursor);
+      if(idx === -1) idx = findWholeWord(text, w, 0); // fallback: urutan diff kadang tidak strictly sequential
       if(idx === -1) return;
-      html = html.slice(0, idx) + '<span class="err">'+w+'</span> <span class="fix">'+r+'</span>' + html.slice(idx + w.length);
+      var m = {start: idx, end: idx + w.length, wrong: w, right: d.right, type: d.type};
+      matches.push(m);
+      reserved.push([m.start, m.end]);
+      cursor = idx + w.length;
     });
+
+    function isReservedSpan(start, end){
+      return reserved.some(function(r){ return r[0] === start && r[1] === end; });
+    }
+    function findAnchor(anchor, from){
+      var searchFrom = from;
+      while(true){
+        var idx = findWholeWord(text, anchor, searchFrom);
+        if(idx === -1) return -1;
+        if(!isReservedSpan(idx, idx + anchor.length)) return idx;
+        searchFrom = idx + 1; // kemunculan ini sedang dipakai diff lain, cari kemunculan berikutnya
+      }
+    }
+
+    var cursor2 = 0;
+    (diffs||[]).forEach(function(d){
+      if(d.type !== 'missing') return;
+      var anchor = d.afterWord || '';
+      var insertPos;
+      if(!anchor){ insertPos = 0; }
+      else {
+        var aIdx = findAnchor(anchor, cursor2);
+        if(aIdx === -1) aIdx = findAnchor(anchor, 0);
+        if(aIdx === -1) return; // tidak ketemu posisi yang valid, lewati diff ini daripada merusak tampilan
+        insertPos = aIdx + anchor.length;
+      }
+      var hasSpace = text.charAt(insertPos) === ' ';
+      var consumeEnd = hasSpace ? insertPos + 1 : insertPos;
+      matches.push({start: insertPos, end: consumeEnd, type:'missing', right: d.right, atStart: !anchor, hasSpace: hasSpace});
+      cursor2 = consumeEnd;
+    });
+
+    matches.sort(function(a,b){ return a.start - b.start; });
+    return matches;
+  }
+
+  function buildMarkedHtml(text, diffs){
+    var matches = resolveDiffMatches(text, diffs);
+    var html = '', pos = 0;
+    matches.forEach(function(m){
+      if(m.start < pos) return; // hindari overlap
+      html += escapeHtml(text.slice(pos, m.start));
+      if(m.type === 'missing'){
+        var ins = escapeHtml(m.right);
+        if(m.atStart) html += '<span class="ins">'+ins+'</span> ';
+        else if(m.hasSpace) html += ' <span class="ins">'+ins+'</span> ';
+        else html += ' <span class="ins">'+ins+'</span>';
+        pos = m.end;
+        return;
+      }
+      var w = escapeHtml(m.wrong), r = escapeHtml(m.right);
+      html += (m.type === 'case')
+        ? '<span class="case-fix">'+r+'</span>'
+        : '<span class="err">'+w+'</span> <span class="fix">'+r+'</span>';
+      pos = m.end;
+    });
+    html += escapeHtml(text.slice(pos));
     return html;
   }
   function corrCardsHtml(list, emptyLabel, emptyText){
@@ -1559,10 +2027,51 @@
     return '<div class="corr" style="border-left-color:var(--tape-green);"><div class="k">'+emptyLabel+'</div><div class="v correct">'+emptyText+'</div></div>';
   }
 
+  function buildCorrectedText(text, diffs){
+    // Sama seperti buildMarkedHtml, tapi hasilnya teks bersih (tanpa coretan)
+    // dengan setiap "wrong" sudah diganti "right" -> kalimat utuh yang benar.
+    var matches = resolveDiffMatches(text, diffs);
+    var out = '', pos = 0;
+    matches.forEach(function(m){
+      if(m.start < pos) return;
+      out += text.slice(pos, m.start);
+      if(m.type === 'missing'){
+        if(m.atStart) out += m.right + ' ';
+        else if(m.hasSpace) out += ' ' + m.right + ' ';
+        else out += ' ' + m.right;
+      } else {
+        out += m.right;
+      }
+      pos = m.end;
+    });
+    out += text.slice(pos);
+    return out;
+  }
+
+  function resultCardHtml(text, diffs, translation, correctedSentence){
+    var corrected = correctedSentence || buildCorrectedText(text, diffs || []);
+    if(corrected) corrected = corrected.charAt(0).toUpperCase() + corrected.slice(1);
+    if(!corrected && !translation) return '';
+    var html = '<div class="result-card">';
+    if(corrected){
+      html += '<div class="result-seg en"><div class="result-label">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>' +
+        'Kalimat yang sudah benar</div><div class="result-text">'+escapeHtml(corrected)+'</div></div>';
+    }
+    if(translation){
+      html += '<div class="result-seg id"><div class="result-label">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 5h11M9 3v2M13 5c-1 4-3.5 7-7 9M6 10c1.5 2 4 3.5 6.5 4M14 21l4-9 4 9M15.5 18h5"/></svg>' +
+        'Terjemahan</div><div class="result-text">'+escapeHtml(translation)+'</div></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
   function renderKetikReview(e){
     var block = document.getElementById('reviewBlock');
     var html = '<span class="eyebrow">Hasil review</span>' +
       '<p class="review-text">' + buildMarkedHtml(e.text, e.diffs) + '</p>' +
+      resultCardHtml(e.text, e.diffs, e.translation, e.correctedSentence) +
       corrCardsHtml(e.corrections, 'Hasil', 'Tidak ada koreksi - tulisan sudah tepat.');
     if(e.note){
       html += '<div class="corr" style="margin-top:10px; border-left-color:var(--tape-green);"><div class="k">Poin yang perlu diperhatikan</div><div class="v">'+escapeHtml(e.note)+'</div></div>';
@@ -1586,7 +2095,7 @@
       var entry = {
         id: 'k_' + Date.now(), ts: Date.now(), text: text,
         diffs: result.diffs || [], corrections: result.corrections || [],
-        note: result.note || '', status: result.hasError ? 'err' : 'ok',
+        note: result.note || '', translation: result.translation || '', correctedSentence: result.correctedSentence || '', status: result.hasError ? 'err' : 'ok',
         meta: result.meta || (result.hasError ? (result.corrections||[]).length+' koreksi' : 'tidak ada koreksi - bagus!')
       };
       await idbPut('ketik', entry);
@@ -2137,6 +2646,7 @@
       title = fmtDateShort(e.ts) + ' \u00b7 ' + fmtTime(e.ts);
       html = statusLabel(e.status) +
         '<p class="review-text" style="margin-top:10px;">' + buildMarkedHtml(e.text, e.diffs) + '</p>' +
+        resultCardHtml(e.text, e.diffs, e.translation, e.correctedSentence) +
         '<div class="panel-head sheet-section-label"><span class="eyebrow">Koreksi</span></div>' +
         corrCardsHtml(e.corrections, 'Hasil', 'Tidak ada koreksi - tulisan sudah tepat.') +
         (e.note ? '<div class="corr" style="margin-top:10px; border-left-color:var(--tape-green);"><div class="k">Catatan pola</div><div class="v">'+escapeHtml(e.note)+'</div></div>' : '') +
@@ -2241,14 +2751,24 @@
   }
 
   function tokenizeWords(str){
-    return (str||'').toLowerCase().match(/[a-z']+/g) || [];
+    var raw = (str||'').toLowerCase().match(/[a-z']+/g) || [];
+    // buang tanda kutip (') yang nyangkut di awal/akhir token, mis. "'tugas'" -> "tugas".
+    // apostrof di TENGAH kata (kontraksi kayak "don't") tetap dibiarkan utuh.
+    return raw.map(function(w){ return w.replace(/^'+|'+$/g, ''); }).filter(function(w){ return w.length > 0; });
   }
-  // kata yang dianggap "benar" dari entri Ketik = semua kata di teks,
-  // MINUS kata-kata yang muncul di bagian "wrong" hasil koreksi AI.
+  // kata yang dianggap "benar" dari entri Ketik = semua kata di teks yang SUDAH
+  // benar (bukan bagian "wrong"), DITAMBAH semua kata hasil koreksi ("right")
+  // dari diffs -> supaya kata yang tadinya salah/dalam kutip dan sudah dikoreksi
+  // AI (mis. 'tugas' -> "a task") ikut masuk ke kamus dalam bentuk yang benar.
   function ketikGoodWords(e){
     var wrongWords = {};
-    (e.diffs||[]).forEach(function(d){ tokenizeWords(d.wrong).forEach(function(w){ wrongWords[w] = true; }); });
-    return tokenizeWords(e.text).filter(function(w){ return !wrongWords[w]; });
+    var rightWords = [];
+    (e.diffs||[]).forEach(function(d){
+      tokenizeWords(d.wrong).forEach(function(w){ wrongWords[w] = true; });
+      tokenizeWords(d.right).forEach(function(w){ rightWords.push(w); });
+    });
+    var textWords = tokenizeWords(e.text).filter(function(w){ return !wrongWords[w]; });
+    return textWords.concat(rightWords);
   }
   // kata yang dianggap "benar" dari entri Voice/Video = potongan wordTags yang ok !== false.
   // kalau entri lama gak punya wordTags, anggap semua kata di transkrip valid.
@@ -2603,10 +3123,6 @@
   var installBtn = document.getElementById('installBtn');
   var deferredPrompt = null;
 
-  function setInstallable(on){
-    installBtn.classList.toggle('installable', on);
-  }
-
   // 0) Kalau app udah dibuka dalam mode terinstal (standalone), tombol instal
   //    gak boleh pernah muncul lagi - biar header tetap rapi.
   var alreadyStandalone = window.matchMedia('(display-mode: standalone)').matches ||
@@ -2617,12 +3133,12 @@
     e.preventDefault();
     if(alreadyStandalone) return;
     deferredPrompt = e;
-    setInstallable(true);
+    installBtn.hidden = false;
   });
 
   installBtn.addEventListener('click', function(){
     if(!deferredPrompt) return;
-    setInstallable(false);
+    installBtn.hidden = true;
     deferredPrompt.prompt();
     deferredPrompt.userChoice.finally(function(){
       deferredPrompt = null;
@@ -2631,13 +3147,13 @@
 
   // Setelah ke-install, sembunyikan tombol
   window.addEventListener('appinstalled', function(){
-    setInstallable(false);
+    installBtn.hidden = true;
     deferredPrompt = null;
   });
 
   // 3) Deteksi mode standalone (udah ke-install) - kalau sudah, jangan ganggu apa pun
   var isStandalone = alreadyStandalone;
-  if(isStandalone){ setInstallable(false); }
+  if(isStandalone){ installBtn.hidden = true; }
 
   // 4) iOS Safari gak support beforeinstallprompt -> kasih hint manual "Add to Home Screen"
   var ua = window.navigator.userAgent;
