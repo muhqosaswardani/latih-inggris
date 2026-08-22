@@ -89,6 +89,11 @@
   @media (min-width:720px){ .top-inner{padding:16px 32px;} }
 
   .brand{display:flex; align-items:baseline; gap:8px;}
+  .brand .mark-btn{
+    background:none; border:none; padding:0; margin:0;
+    display:inline-flex; align-items:baseline; cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
   .brand .mark{
     font-family:var(--mono); font-weight:700; font-size:18px;
     letter-spacing:0.02em; color:#FFFFFF;
@@ -663,21 +668,7 @@
   .rekap-compare .box .val.up{color:var(--tape-green);}
   .rekap-compare .box .val.down{color:var(--rec-red);}
 
-  /* ============ PWA: install button + ios hint ============ */
-  .install-btn{
-    display:flex; align-items:center; gap:6px;
-    background:rgba(255,255,255,0.14);
-    border:1px solid rgba(255,255,255,0.35);
-    color:#fff;
-    font-family:var(--serif); font-weight:600; font-size:13px;
-    padding:8px 12px; border-radius:999px;
-    white-space:nowrap;
-  }
-  .install-btn:hover{background:rgba(255,255,255,0.22);}
-  .install-btn svg{width:16px; height:16px; flex:none;}
-  .install-btn span{display:none;}
-  @media (min-width:560px){ .install-btn span{display:inline;} }
-
+  /* ============ PWA: install trigger (menyatu di mark "LATIH") + ios hint ============ */
   .ios-install-hint{
     background:var(--amber-dim);
     border-bottom:1px solid var(--line);
@@ -715,13 +706,11 @@
 <header class="top">
   <div class="top-inner">
     <div class="brand">
-      <span class="mark">LATIH</span>
+      <button id="installBtn" class="mark-btn" type="button" aria-label="Instal App">
+        <span class="mark">LATIH</span>
+      </button>
       <span class="sub">log praktik harian</span>
     </div>
-    <button id="installBtn" class="install-btn" type="button" hidden>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-      <span>Instal App</span>
-    </button>
     <div class="streak-widget">
       <div class="streak-label">
         <span class="n" id="streakNum">47 hari</span>
@@ -3123,37 +3112,34 @@
   var installBtn = document.getElementById('installBtn');
   var deferredPrompt = null;
 
-  // 0) Kalau app udah dibuka dalam mode terinstal (standalone), tombol instal
-  //    gak boleh pernah muncul lagi - biar header tetap rapi.
+  // 0) Kalau app udah dibuka dalam mode terinstal (standalone), gak perlu
+  //    nangkep prompt instal lagi.
   var alreadyStandalone = window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
 
-  // 2) Android/Chrome/Edge: tangkap event beforeinstallprompt, tampilkan tombol
+  // 2) Android/Chrome/Edge: tangkap event beforeinstallprompt. Gak ada tombol
+  //    terpisah yang dimunculkan - trigger instal nyatu di kata "LATIH" (installBtn),
+  //    jadi tampilan header gak berubah sama sekali.
   window.addEventListener('beforeinstallprompt', function(e){
     e.preventDefault();
     if(alreadyStandalone) return;
     deferredPrompt = e;
-    installBtn.hidden = false;
   });
 
   installBtn.addEventListener('click', function(){
     if(!deferredPrompt) return;
-    installBtn.hidden = true;
     deferredPrompt.prompt();
     deferredPrompt.userChoice.finally(function(){
       deferredPrompt = null;
     });
   });
 
-  // Setelah ke-install, sembunyikan tombol
   window.addEventListener('appinstalled', function(){
-    installBtn.hidden = true;
     deferredPrompt = null;
   });
 
-  // 3) Deteksi mode standalone (udah ke-install) - kalau sudah, jangan ganggu apa pun
+  // 3) Deteksi mode standalone (udah ke-install)
   var isStandalone = alreadyStandalone;
-  if(isStandalone){ installBtn.hidden = true; }
 
   // 4) iOS Safari gak support beforeinstallprompt -> kasih hint manual "Add to Home Screen"
   var ua = window.navigator.userAgent;
