@@ -616,6 +616,10 @@
   .baca-search-input:focus{border-color:var(--navy);}
   .baca-toolbar-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;}
   .baca-toolbar-top .baca-mode-switch{margin-bottom:0;}
+  .baca-toolbar-actions{display:flex; align-items:center; gap:8px; flex:none;}
+  .icon-btn-ghost{background:var(--paper); color:var(--ink-soft); border:1px solid var(--line);}
+  .icon-btn-ghost:hover:not(:disabled){background:var(--paper-deep); color:var(--ink);}
+  .icon-btn-ghost.active{background:var(--navy); color:#fff; border-color:var(--navy);}
   .baca-action-row .baca-search-wrap.show{margin-bottom:2px;}
   .icon-btn{
     width:46px; height:46px; flex:none; display:flex; align-items:center; justify-content:center;
@@ -1293,9 +1297,14 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
             </button>
           </div>
-          <button type="button" class="icon-btn" id="btnBacaNew" title="Buat bacaan baru" aria-label="Buat bacaan baru">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5l1.85 5.65L19.5 10l-5.65 1.85L12 17.5l-1.85-5.65L4.5 10l5.65-1.85L12 2.5z"/></svg>
-          </button>
+          <div class="baca-toolbar-actions">
+            <button type="button" class="icon-btn icon-btn-ghost" id="btnBacaTranslate" title="Tampilkan terjemahan" aria-label="Tampilkan terjemahan" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h11M9 3v2M13 5c-1 4-3.5 7-7 9M6 10c1.5 2 4 3.5 6.5 4M14 21l4-9 4 9M15.5 18h5"/></svg>
+            </button>
+            <button type="button" class="icon-btn" id="btnBacaNew" title="Buat bacaan baru" aria-label="Buat bacaan baru">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5l1.85 5.65L19.5 10l-5.65 1.85L12 17.5l-1.85-5.65L4.5 10l5.65-1.85L12 2.5z"/></svg>
+            </button>
+          </div>
         </div>
 
         <div class="baca-action-row">
@@ -2470,14 +2479,17 @@
     };
   }
 
-  function storyReaderHtml(story){
+  function storyReaderHtml(story, opts){
+    opts = opts || {};
     var kind = bacaKindInfo(story);
+    var toggleBtn = opts.hideToggle ? '' :
+      '<button type="button" class="icon-btn-sm story-toggle-btn" data-story-toggle title="Tampilkan terjemahan" aria-label="Tampilkan terjemahan">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h11M9 3v2M13 5c-1 4-3.5 7-7 9M6 10c1.5 2 4 3.5 6.5 4M14 21l4-9 4 9M15.5 18h5"/></svg>' +
+      '</button>';
     var html = '<div class="story-reader-wrap">' +
       '<div class="story-top-row">' +
       '<div class="story-kind-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+kind.icon+'</svg><span>'+escapeHtml(kind.label)+'</span></div>' +
-      '<button type="button" class="icon-btn-sm story-toggle-btn" data-story-toggle title="Tampilkan terjemahan" aria-label="Tampilkan terjemahan">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h11M9 3v2M13 5c-1 4-3.5 7-7 9M6 10c1.5 2 4 3.5 6.5 4M14 21l4-9 4 9M15.5 18h5"/></svg>' +
-      '</button>' +
+      toggleBtn +
       '</div>' +
       '<div class="story-reader">' +
       '<h3 class="story-title mono">'+escapeHtml(story.title||'')+'</h3>' +
@@ -2492,6 +2504,25 @@
     html += '</div></div>';
     return html;
   }
+
+  // Tombol terjemahan statis di toolbar (dipakai khusus layar Baca utama;
+  // sheet Riwayat tetap pakai tombol ikon bawaan per-item di storyReaderHtml).
+  var btnBacaTranslate = document.getElementById('btnBacaTranslate');
+  function resetBacaTranslateBtn(){
+    btnBacaTranslate.disabled = false;
+    btnBacaTranslate.classList.remove('active');
+    btnBacaTranslate.title = 'Tampilkan terjemahan';
+    btnBacaTranslate.setAttribute('aria-label', 'Tampilkan terjemahan');
+  }
+  btnBacaTranslate.addEventListener('click', function(){
+    var reader = document.querySelector('#bacaStoryBlock .story-reader');
+    if(!reader) return;
+    var showing = reader.classList.toggle('show-translate');
+    btnBacaTranslate.classList.toggle('active', showing);
+    var label = showing ? 'Sembunyikan terjemahan' : 'Tampilkan terjemahan';
+    btnBacaTranslate.title = label;
+    btnBacaTranslate.setAttribute('aria-label', label);
+  });
 
   document.body.addEventListener('click', function(e){
     var btn = e.target.closest('[data-story-toggle]');
@@ -2566,7 +2597,8 @@
       };
       await idbPut('baca', entry);
       BACA.unshift(entry);
-      document.getElementById('bacaStoryBlock').innerHTML = storyReaderHtml(entry);
+      document.getElementById('bacaStoryBlock').innerHTML = storyReaderHtml(entry, {hideToggle:true});
+      resetBacaTranslateBtn();
       renderBacaLists();
       if(bacaMode === 'topic'){ bacaSearchInput.value = ''; }
     }catch(err){
@@ -3751,7 +3783,8 @@
     renderVoiceLists();
     renderVideoLists();
     renderBacaLists();
-    if(BACA.length){ document.getElementById('bacaStoryBlock').innerHTML = storyReaderHtml(BACA[0]); }
+    if(BACA.length){ document.getElementById('bacaStoryBlock').innerHTML = storyReaderHtml(BACA[0], {hideToggle:true}); resetBacaTranslateBtn(); }
+    else { btnBacaTranslate.disabled = true; }
     renderCalendar();
     var todayKey = dayKey(Date.now());
     if(VIDEO.some(function(e){ return dayKey(e.ts)===todayKey; })){
