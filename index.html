@@ -191,15 +191,20 @@
   .wk-dot.on{background:#fff;}
   .wk-dot.today{outline:1.5px solid #fff; outline-offset:2px;}
 
-  .module-status{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; position:relative; z-index:2;}
+  .module-status{display:flex; gap:6px; flex-wrap:nowrap; margin-top:6px; position:relative; z-index:2;}
   .status-chip{
-    display:flex; align-items:center; gap:7px; padding:8px 12px;
-    border-radius:20px; font-family:var(--serif); font-weight:600; font-size:12px;
+    display:flex; align-items:center; justify-content:center; gap:5px; padding:8px 6px; flex:1; min-width:0;
+    border-radius:20px; font-family:var(--serif); font-weight:600; font-size:11px; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis;
     background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.18); color:#fff;
   }
   .status-dot{width:7px; height:7px; border-radius:50%; background:#fff; flex:none;}
   .status-dot.pending{background:#FCD9A0; animation:pulse 1.6s ease-in-out infinite;}
   @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.35;}}
+  @media (min-width:420px){
+    .module-status{gap:10px;}
+    .status-chip{padding:8px 12px; font-size:12px; flex:none;}
+  }
 
   .stat-row{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:22px;}
   .stat-box{
@@ -1443,7 +1448,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.4.0'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.4.1'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
