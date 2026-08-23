@@ -201,13 +201,48 @@
   .status-dot.pending{background:#FCD9A0; animation:pulse 1.6s ease-in-out infinite;}
   @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.35;}}
 
-  .stat-row{display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:22px;}
-  @media (min-width:560px){ .stat-row{grid-template-columns:repeat(3,1fr);} }
+  .stat-row{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:22px;}
   .stat-box{
-    background:var(--paper-alt); border:none; border-radius:var(--radius); padding:16px 18px;
+    background:var(--paper-alt); border:none; border-radius:var(--radius); padding:12px 8px; text-align:center; min-width:0;
   }
-  .stat-box .val{font-family:var(--mono); font-size:24px; font-weight:800; color:var(--navy);}
-  .stat-box .lbl{font-size:12.5px; color:var(--ink-soft); margin-top:2px; font-weight:500;}
+  .stat-box .val{font-family:var(--mono); font-size:19px; font-weight:800; color:var(--navy);}
+  .stat-box .lbl{font-size:10.5px; color:var(--ink-soft); margin-top:2px; font-weight:500; line-height:1.25;}
+  @media (min-width:560px){
+    .stat-row{gap:12px;}
+    .stat-box{padding:16px 18px; text-align:left;}
+    .stat-box .val{font-size:24px;}
+    .stat-box .lbl{font-size:12.5px;}
+  }
+
+  /* ============ KALENDER AKTIVITAS (heatmap gaya kontribusi, per tahun) ============ */
+  .ycal-card{padding:18px 16px 16px;}
+  .ycal-header-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .ycal-nav{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:13px; font-weight:800; color:var(--ink);}
+  .ycal-nav-btn{
+    width:26px; height:26px; border-radius:8px; border:none; background:var(--paper-deep); color:var(--ink-soft);
+    display:flex; align-items:center; justify-content:center; transition:background-color .15s ease;
+  }
+  .ycal-nav-btn svg{width:13px; height:13px;}
+  .ycal-nav-btn:hover:not(:disabled){background:var(--line-dark); color:var(--ink);}
+  .ycal-nav-btn:disabled{opacity:0.35; cursor:default;}
+  .ycal-body{display:flex; gap:5px; align-items:flex-start;}
+  .ycal-daylabels{
+    display:grid; grid-template-rows:repeat(7,11px); gap:3px; flex:none;
+    font-family:var(--mono); font-size:8.5px; color:var(--ink-faint); text-align:center; width:12px; padding-top:1px;
+  }
+  .ycal-scroll{overflow-x:auto; padding-bottom:2px; -webkit-overflow-scrolling:touch;}
+  .ycal-scroll::-webkit-scrollbar{height:5px;}
+  .ycal-scroll::-webkit-scrollbar-thumb{background:var(--line-dark); border-radius:3px;}
+  .ycal-grid{display:grid; grid-auto-flow:column; grid-template-rows:repeat(7,11px); grid-auto-columns:11px; gap:3px;}
+  .ycal-cell{width:11px; height:11px; border-radius:2.5px; background:#E3E9E7;}
+  .ycal-cell.lvl1{background:#BFE8DB;}
+  .ycal-cell.lvl2{background:#63BE9F;}
+  .ycal-cell.lvl3{background:var(--navy);}
+  .ycal-cell.out{opacity:0;}
+  .ycal-cell.today{box-shadow:0 0 0 1.5px var(--amber) inset;}
+  .ycal-legend{display:flex; align-items:center; flex-wrap:wrap; gap:5px 10px; justify-content:flex-end; margin-top:12px; font-size:10px; color:var(--ink-faint); font-family:var(--serif);}
+  .ycal-legend .sw{display:inline-flex; align-items:center; gap:4px;}
+  .ycal-legend .sw::before{content:""; width:9px; height:9px; border-radius:2.5px; background:var(--sw-color);}
 
   .sync-card{margin-bottom:20px;}
   .sync-row{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:8px; flex-wrap:wrap;}
@@ -582,8 +617,9 @@
     transition:border-color .15s ease;
   }
   .baca-search-input:focus{border-color:var(--navy);}
-  .baca-action-row .icon-btn{margin-left:auto;}
-  .baca-action-row .baca-search-wrap.show ~ .icon-btn{margin-left:0;}
+  .baca-toolbar-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;}
+  .baca-toolbar-top .baca-mode-switch{margin-bottom:0;}
+  .baca-action-row .baca-search-wrap.show{margin-bottom:2px;}
   .icon-btn{
     width:46px; height:46px; flex:none; display:flex; align-items:center; justify-content:center;
     border-radius:12px; border:none; background:var(--navy); color:#fff;
@@ -593,16 +629,20 @@
   .icon-btn:hover{background:var(--navy-soft);}
   .icon-btn:active{transform:scale(0.94);}
   .icon-btn:disabled{opacity:0.5; cursor:default;}
+  .icon-btn-sm{width:38px; height:38px; border-radius:10px; background:var(--paper); color:var(--ink-soft); border:1px solid var(--line);}
+  .icon-btn-sm svg{width:16px; height:16px;}
+  .icon-btn-sm:hover{background:var(--paper-deep); color:var(--ink);}
+  .icon-btn-sm.active{background:var(--navy); color:#fff; border-color:var(--navy);}
+  .story-top-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
   .story-kind-tag{
     display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10px;
     font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--navy);
-    background:var(--paper-deep); padding:5px 10px 5px 8px; border-radius:20px; margin-bottom:14px;
+    background:var(--paper-deep); padding:5px 10px 5px 8px; border-radius:20px; margin-bottom:0;
   }
   .story-kind-tag svg{width:12px; height:12px; flex:none;}
 
   /* ============ BACA (story reader) ============ */
-  .story-toggle-btn{margin-bottom:16px;}
-  .story-toggle-btn svg{width:15px; height:15px;}
+  .story-toggle-btn{flex:none;}
   .story-reader-wrap + .story-reader-wrap{margin-top:24px; padding-top:24px; border-top:1px solid var(--line);}
   .story-title{font-size:18px;}
   .story-title-id{font-size:12.5px; color:var(--ink-faint); font-style:italic; margin-top:3px; margin-bottom:18px;}
@@ -866,6 +906,34 @@
       <div class="stat-box"><div class="val" id="statTotalEntries">0</div><div class="lbl">total entri tersimpan</div></div>
       <div class="stat-box"><div class="val" id="statLongestStreak">0</div><div class="lbl">rekor beruntun terpanjang</div></div>
       <div class="stat-box"><div class="val" id="statWeekCorrections">0</div><div class="lbl">koreksi minggu ini</div></div>
+    </div>
+
+    <div class="card ycal-card">
+      <div class="ycal-header-row">
+        <span class="eyebrow" style="margin:0;">Kalender aktivitas</span>
+        <div class="ycal-nav">
+          <button type="button" class="ycal-nav-btn" id="ycalPrev" aria-label="Tahun sebelumnya">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <span id="ycalYear">2026</span>
+          <button type="button" class="ycal-nav-btn" id="ycalNext" aria-label="Tahun berikutnya">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="ycal-body">
+        <div class="ycal-daylabels">
+          <span>M</span><span>S</span><span>S</span><span>R</span><span>K</span><span>J</span><span>S</span>
+        </div>
+        <div class="ycal-scroll">
+          <div class="ycal-grid" id="ycalGrid"></div>
+        </div>
+      </div>
+      <div class="ycal-legend">
+        <span class="sw" style="--sw-color:#BFE8DB;">Ketik</span>
+        <span class="sw" style="--sw-color:#63BE9F;">+ Video</span>
+        <span class="sw" style="--sw-color:var(--navy);">+ Voice</span>
+      </div>
     </div>
 
     <div class="card sync-card">
@@ -1221,15 +1289,20 @@
     <!-- ---- BACA ---- -->
     <div class="sub-view active" data-scope="baca" data-sub="latihan">
       <div class="card baca-toolbar">
-        <div class="baca-mode-switch" id="bacaModeSwitch">
-          <button type="button" class="baca-mode-btn active" data-mode="story" title="Cerita pendek" aria-label="Cerita pendek">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 5.5C4 4.2 7 3.5 9 4.2c1.3.4 2.4 1.2 3 2.1V19c-.6-.9-1.7-1.7-3-2.1-2-.7-5 0-7 1.3V5.5z"/><path d="M22 5.5c-2-1.3-5-2-7-1.3-1.3.4-2.4 1.2-3 2.1V19c.6-.9 1.7-1.7 3-2.1 2-.7 5 0 7 1.3V5.5z"/></svg>
-          </button>
-          <button type="button" class="baca-mode-btn" data-mode="news" title="Berita" aria-label="Berita">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h13a2 2 0 0 1 2 2v12.5A1.5 1.5 0 0 1 17.5 20H6a2 2 0 0 1-2-2V4z"/><path d="M19 8.5h1.5A1.5 1.5 0 0 1 22 10v8a2 2 0 0 1-2 2"/><path d="M7.5 8h6M7.5 11h6M7.5 14h4"/></svg>
-          </button>
-          <button type="button" class="baca-mode-btn" data-mode="topic" title="Cari topik" aria-label="Cari topik">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
+        <div class="baca-toolbar-top">
+          <div class="baca-mode-switch" id="bacaModeSwitch">
+            <button type="button" class="baca-mode-btn active" data-mode="story" title="Cerita pendek" aria-label="Cerita pendek">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 5.5C4 4.2 7 3.5 9 4.2c1.3.4 2.4 1.2 3 2.1V19c-.6-.9-1.7-1.7-3-2.1-2-.7-5 0-7 1.3V5.5z"/><path d="M22 5.5c-2-1.3-5-2-7-1.3-1.3.4-2.4 1.2-3 2.1V19c.6-.9 1.7-1.7 3-2.1 2-.7 5 0 7 1.3V5.5z"/></svg>
+            </button>
+            <button type="button" class="baca-mode-btn" data-mode="news" title="Berita" aria-label="Berita">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h13a2 2 0 0 1 2 2v12.5A1.5 1.5 0 0 1 17.5 20H6a2 2 0 0 1-2-2V4z"/><path d="M19 8.5h1.5A1.5 1.5 0 0 1 22 10v8a2 2 0 0 1-2 2"/><path d="M7.5 8h6M7.5 11h6M7.5 14h4"/></svg>
+            </button>
+            <button type="button" class="baca-mode-btn" data-mode="topic" title="Cari topik" aria-label="Cari topik">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
+            </button>
+          </div>
+          <button type="button" class="icon-btn" id="btnBacaNew" title="Buat bacaan baru" aria-label="Buat bacaan baru">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5l1.85 5.65L19.5 10l-5.65 1.85L12 17.5l-1.85-5.65L4.5 10l5.65-1.85L12 2.5z"/></svg>
           </button>
         </div>
 
@@ -1237,9 +1310,6 @@
           <div class="baca-search-wrap" id="bacaSearchWrap">
             <input type="text" id="bacaSearchInput" class="baca-search-input" placeholder="Topik apa saja - sains, sejarah, budaya, teknologi..." maxlength="140">
           </div>
-          <button type="button" class="icon-btn" id="btnBacaNew" title="Buat bacaan baru" aria-label="Buat bacaan baru">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5l1.85 5.65L19.5 10l-5.65 1.85L12 17.5l-1.85-5.65L4.5 10l5.65-1.85L12 2.5z"/></svg>
-          </button>
         </div>
 
         <div class="loading-row" id="bacaLoading"><span class="spin-reel"></span><span>membuat bacaan…</span></div>
@@ -1372,7 +1442,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.2.0'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.3.0'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -1723,11 +1793,69 @@
     setChip('Ketik', KETIK.some(function(e){ return dayKey(e.ts)===todayKey; }));
     setChip('Voice', VOICE.some(function(e){ return dayKey(e.ts)===todayKey; }));
     setChip('Video', VIDEO.some(function(e){ return dayKey(e.ts)===todayKey; }));
+
+    renderActivityCalendar();
   }
   function setChip(name, done){
     document.getElementById('dot'+name).classList.toggle('pending', !done);
     document.getElementById('chip'+name).textContent = name + ' - ' + (done ? 'selesai' : 'belum');
   }
+
+  // ==================================================================
+  // KALENDER AKTIVITAS - heatmap gaya "contribution graph" per tahun.
+  // Level warna per hari dihitung dari BANYAK modul berbeda yang diisi
+  // hari itu: 1 modul (mis. Ketik saja) = hijau muda, 2 modul (mis.
+  // Ketik+Video) = hijau sedang, 3 modul (Ketik+Voice+Video) = hijau tua.
+  // ==================================================================
+  var ycalYearShown = new Date().getFullYear();
+  function buildDayModuleMap(){
+    var map = {};
+    function mark(list, key){
+      list.forEach(function(e){
+        var k = dayKey(e.ts);
+        if(!map[k]) map[k] = {};
+        map[k][key] = true;
+      });
+    }
+    mark(KETIK, 'ketik'); mark(VOICE, 'voice'); mark(VIDEO, 'video');
+    return map;
+  }
+  function renderActivityCalendar(){
+    var yearEl = document.getElementById('ycalYear');
+    if(!yearEl) return;
+    var map = buildDayModuleMap();
+    var year = ycalYearShown;
+    yearEl.textContent = year;
+    var currentYear = new Date().getFullYear();
+    document.getElementById('ycalNext').disabled = (year >= currentYear);
+
+    var jan1 = new Date(year, 0, 1);
+    var dec31 = new Date(year, 11, 31);
+    var start = new Date(jan1); start.setDate(start.getDate() - start.getDay());
+    var end = new Date(dec31); end.setDate(end.getDate() + (6 - end.getDay()));
+
+    var todayKey = dayKey(Date.now());
+    var html = '';
+    var cursor = new Date(start);
+    while(cursor <= end){
+      var inYear = cursor.getFullYear() === year;
+      var k = dayKey(cursor.getTime());
+      var mods = map[k];
+      var level = mods ? Math.min(Object.keys(mods).length, 3) : 0;
+      var cls = 'ycal-cell lvl' + level + (inYear ? '' : ' out') + (k === todayKey ? ' today' : '');
+      var title = inYear ? (fmtDateShort(cursor.getTime()) + ' ' + year + (level ? (' \u00b7 ' + level + ' modul') : ' \u00b7 belum ada')) : '';
+      html += '<div class="' + cls + '"' + (title ? (' title="' + title + '"') : '') + '></div>';
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    document.getElementById('ycalGrid').innerHTML = html;
+  }
+  document.getElementById('ycalPrev').addEventListener('click', function(){
+    ycalYearShown--; renderActivityCalendar();
+  });
+  document.getElementById('ycalNext').addEventListener('click', function(){
+    if(ycalYearShown >= new Date().getFullYear()) return;
+    ycalYearShown++; renderActivityCalendar();
+  });
 
   // ==================================================================
   // FILTER RIWAYAT (chip Semua/Hari ini/Minggu ini/Bulan ini)
@@ -2353,10 +2481,12 @@
   function storyReaderHtml(story){
     var kind = bacaKindInfo(story);
     var html = '<div class="story-reader-wrap">' +
+      '<div class="story-top-row">' +
       '<div class="story-kind-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+kind.icon+'</svg><span>'+escapeHtml(kind.label)+'</span></div>' +
-      '<button type="button" class="btn btn-ghost story-toggle-btn" data-story-toggle>' +
+      '<button type="button" class="icon-btn-sm story-toggle-btn" data-story-toggle title="Tampilkan terjemahan" aria-label="Tampilkan terjemahan">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h11M9 3v2M13 5c-1 4-3.5 7-7 9M6 10c1.5 2 4 3.5 6.5 4M14 21l4-9 4 9M15.5 18h5"/></svg>' +
-      '<span>Tampilkan terjemahan</span></button>' +
+      '</button>' +
+      '</div>' +
       '<div class="story-reader">' +
       '<h3 class="story-title mono">'+escapeHtml(story.title||'')+'</h3>' +
       '<div class="story-title-id">'+escapeHtml(story.titleId||'')+'</div>';
@@ -2377,7 +2507,10 @@
     var wrap = btn.closest('.story-reader-wrap');
     var reader = wrap.querySelector('.story-reader');
     var showing = reader.classList.toggle('show-translate');
-    btn.querySelector('span').textContent = showing ? 'Sembunyikan terjemahan' : 'Tampilkan terjemahan';
+    btn.classList.toggle('active', showing);
+    var label = showing ? 'Sembunyikan terjemahan' : 'Tampilkan terjemahan';
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
   });
 
   function renderBacaItem(e, idx){
