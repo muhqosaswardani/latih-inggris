@@ -266,6 +266,15 @@
   }
   textarea.writer:focus{border-color:var(--navy);}
   .writer-foot{display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:10px;}
+  .writer-foot-left{display:flex; align-items:center; gap:8px;}
+  .writer-clear-btn{
+    width:32px; height:32px; flex:none; display:flex; align-items:center; justify-content:center;
+    border-radius:10px; border:1px solid var(--line); background:#fff; color:var(--ink-faint);
+    transition:background-color .15s ease, color .15s ease, transform .1s ease;
+  }
+  .writer-clear-btn svg{width:15px; height:15px;}
+  .writer-clear-btn:hover{background:var(--paper-deep); color:var(--rec-red);}
+  .writer-clear-btn:active{transform:scale(0.94);}
   .char-count{font-family:var(--mono); font-size:11.5px; color:var(--ink-faint);}
 
   .btn{
@@ -936,7 +945,12 @@
         </div>
         <textarea class="writer" id="writerInput" placeholder="Tulis santai saja, AI akan menandai bagian yang perlu diperbaiki."></textarea>
         <div class="writer-foot">
-          <span class="char-count" id="charCount">0 karakter</span>
+          <div class="writer-foot-left">
+            <span class="char-count" id="charCount">0 karakter</span>
+            <button type="button" class="writer-clear-btn" id="btnClearWriter" title="Hapus teks" aria-label="Hapus teks">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/></svg>
+            </button>
+          </div>
           <button class="btn btn-primary" id="btnReview">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             Kirim untuk direview
@@ -2007,6 +2021,15 @@
   function updateCount(){ charCount.textContent = writer.value.length + ' karakter'; }
   writer.addEventListener('input', updateCount);
   updateCount();
+
+  document.getElementById('btnClearWriter').addEventListener('click', function(){
+    writer.value = '';
+    updateCount();
+    document.getElementById('reviewBlock').classList.remove('show');
+    document.getElementById('reviewBlock').innerHTML = '';
+    document.getElementById('reviewError').style.display = 'none';
+    writer.focus();
+  });
 
   function ketikPrompt(text, history){
     var hist = history.slice(0,5).map(function(h){
