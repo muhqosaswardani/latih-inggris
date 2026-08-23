@@ -371,10 +371,10 @@
 
   .voice-result{display:none; text-align:left; width:100%; margin-top:6px;}
   .voice-result.show{display:block;}
-  .vr-row{display:flex; gap:10px; padding:11px 0; border-bottom:1px solid var(--line);}
+  .vr-row{display:flex; flex-direction:column; gap:6px; padding:11px 0; border-bottom:1px solid var(--line);}
   .vr-row:last-child{border-bottom:none;}
-  .vr-row .k{font-family:var(--mono); font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-faint); min-width:120px; padding-top:1px;}
-  .vr-row .v{font-size:14.5px; flex:1;}
+  .vr-row .k{font-family:var(--mono); font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-faint);}
+  .vr-row .v{font-size:14.5px;}
   .word-tag{display:inline-block; padding:2px 7px; border-radius:12px; font-size:12.5px; font-weight:600; margin:2px 3px 2px 0;}
   .word-tag.ok{background:var(--tape-green-dim); color:var(--tape-green);}
   .word-tag.bad{background:var(--rec-red-dim); color:var(--rec-red); text-decoration:underline wavy;}
@@ -2522,7 +2522,7 @@
       'isi transcript dengan string kosong "", correctedSentence dengan string kosong "", set meaningOk ke false, kosongkan wordTags dan pron, dan isi meta dengan "tidak ada ucapan terdeteksi - coba rekam ulang".\n\n' +
       'Balas dalam format JSON sesuai skema. Field:\n' +
       '- transcript: transkrip persis kalimat bahasa Inggris yang diucapkan (apa adanya, termasuk kalau ada kesalahan grammar).\n' +
-      '- correctedSentence: SATU kalimat bahasa Inggris FINAL versi yang gramatikal 100% benar dan natural. WAJIB: perbaiki SEMUA masalah yang kamu sebutkan di field "meaning" di bawah - correctedSentence dan meaning HARUS KONSISTEN. Contoh: kalau di "meaning" kamu bilang kalimat "I 28" seharusnya "I am 28" (kurang kata kerja "am"), maka correctedSentence WAJIB sudah mengandung "I am 28", bukan "I 28" lagi. JANGAN sekadar menyalin ulang transcript dengan sedikit perubahan kosmetik - tulis ulang kalimat itu secara utuh sampai benar-benar gramatikal, alami, dan enak didengar, walau harus mengubah banyak kata. Kalau transcript sudah 100% benar, correctedSentence sama persis dengan transcript. Field ini akan diucapkan lewat text-to-speech ke pengguna sebagai contoh yang benar, jadi WAJIB benar-benar bebas kesalahan grammar.\n' +
+      '- correctedSentence: SATU kalimat bahasa Inggris FINAL versi yang gramatikal 100% benar dan natural. WAJIB: perbaiki SEMUA masalah yang kamu sebutkan di field "meaning" di bawah - correctedSentence dan meaning HARUS KONSISTEN. Contoh: kalau di "meaning" kamu bilang kalimat "I 28" seharusnya "I am 28" (kurang kata kerja "am"), maka correctedSentence WAJIB sudah mengandung "I am 28", bukan "I 28" lagi. JANGAN sekadar menyalin ulang transcript dengan sedikit perubahan kosmetik - kalau transcript ada kata dobel (mis. "we we", "make make") atau susunan kata yang kacau/tidak jelas maksudnya, kamu WAJIB menyusun ulang TOTAL jadi satu kalimat baru yang utuh, koheren, dan enak didengar sesuai maksud paling masuk akal dari konteksnya, walau harus mengubah banyak kata. Kalau transcript sudah 100% benar, correctedSentence sama persis dengan transcript. Field ini akan diucapkan lewat text-to-speech ke pengguna sebagai contoh yang benar, jadi WAJIB benar-benar bebas kesalahan grammar dan tidak ada kata dobel/hilang/janggal.\n' +
       '- meaningOk: true jika grammar & makna kalimat sudah benar.\n' +
       '- meaning: array {title, detail} kesalahan grammar/makna dalam Bahasa Indonesia (kosongkan jika meaningOk true).\n' +
       '- wordTags: pecah transkrip jadi beberapa potongan kata/frasa {t, ok}, ok=false untuk bagian yang pengucapannya kurang tepat.\n' +
@@ -2802,13 +2802,14 @@
       'Balas dalam format JSON sesuai skema. Field:\n' +
       '- topic: topik singkat pembicaraan dalam Bahasa Indonesia (2-4 kata).\n' +
       '- transcript: transkrip bahasa Inggris dari apa yang diucapkan (apa adanya).\n' +
-      '- correctedSentence: versi FINAL yang gramatikal 100% benar dan natural dari seluruh transcript. WAJIB: perbaiki SEMUA masalah yang kamu sebutkan di "meaning" - correctedSentence dan meaning HARUS KONSISTEN, jangan sekadar menyalin ulang transcript dengan perubahan kosmetik. Tulis ulang penuh sampai benar-benar gramatikal (kalau transcript sudah benar, isi persis sama). Akan diucapkan lewat text-to-speech sebagai contoh yang benar, jadi WAJIB bebas kesalahan grammar - cek ulang sebelum menjawab.\n' +
+      '- correctedSentence: versi FINAL dari SELURUH transcript yang gramatikal 100% benar, natural, dan MASUK AKAL maknanya. WAJIB: perbaiki SEMUA masalah yang kamu sebutkan di "meaning" - correctedSentence dan meaning HARUS KONSISTEN. JANGAN sekadar menyalin ulang transcript apa adanya atau melakukan perubahan kosmetik kecil-kecilan - kalau transcript pengguna berantakan (ada kata dobel seperti "we we" atau "make make", kata yang hilang seperti "to"/"is"/"am", atau frasa yang susunannya kacau/tidak jelas maksudnya seperti "in place of large"), kamu WAJIB menyusun ulang TOTAL jadi kalimat baru yang utuh, koheren, dan enak dibaca sesuai maksud yang paling masuk akal dari konteksnya - bukan cuma menempelkan ulang kata-kata asli. Kalau transcript sudah 100% benar dan jelas, correctedSentence sama persis dengan transcript. Field ini akan diucapkan lewat text-to-speech sebagai contoh yang benar, jadi WAJIB benar-benar bebas kesalahan grammar dan tidak ada kata dobel/hilang/janggal.\n' +
       '- meaningOk: true jika grammar & makna keseluruhan sudah benar.\n' +
       '- meaning: array {title, detail} kesalahan grammar/makna dalam Bahasa Indonesia.\n' +
       '- wordTags: pecah transkrip jadi potongan {t, ok}, ok=false untuk bagian yang pengucapannya kurang tepat.\n' +
       '- pron: {word, ipa, tip} untuk kata yang pengucapannya kurang tepat.\n' +
-      '- translation: terjemahan Bahasa Indonesia dari transkrip.\n' +
-      '- meta: ringkasan singkat, contoh "3 koreksi tata bahasa" atau "tidak ada koreksi - bagus!".';
+      '- translation: terjemahan Bahasa Indonesia dari "correctedSentence".\n' +
+      '- meta: ringkasan singkat, contoh "3 koreksi tata bahasa" atau "tidak ada koreksi - bagus!".\n\n' +
+      'WAJIB DICEK ULANG sebelum menjawab: baca lagi correctedSentence dari awal sampai akhir seolah kamu guru bahasa Inggris native yang teliti - apakah setiap kalimat di dalamnya sudah 100% gramatikal, tidak ada kata dobel/hilang, dan masuk akal maknanya? Kalau masih ada bagian yang janggal, berulang, atau tidak lengkap, SUSUN ULANG DULU sebelum menjawab.';
   }
   function getVideoDuration(blob){
     return new Promise(function(resolve){
