@@ -186,7 +186,7 @@
   .hero-date{font-family:var(--serif); font-weight:600; font-size:12px; letter-spacing:0.08em; color:rgba(255,255,255,.8); text-transform:uppercase;}
   .hero-day{font-family:var(--mono); font-size:32px; font-weight:800; line-height:1; margin-top:4px; color:#fff; letter-spacing:-0.02em; white-space:nowrap;}
   .hero-day .day-label{font-size:13px; color:rgba(255,255,255,.85); font-weight:600; margin-left:6px; font-family:var(--serif);}
-  .hero-week{display:flex; gap:6px; position:relative; z-index:2; margin-right:6px;}
+  .hero-week{display:flex; gap:6px; position:relative; z-index:2; margin-right:16px;}
   .wk-dot{width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.25);}
   .wk-dot.on{background:#fff;}
   .wk-dot.today{outline:1.5px solid #fff; outline-offset:2px;}
@@ -1448,7 +1448,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.4.1'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.4.2'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
