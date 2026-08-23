@@ -373,6 +373,10 @@
   .word-tag{display:inline-block; padding:2px 7px; border-radius:12px; font-size:12.5px; font-weight:600; margin:2px 3px 2px 0;}
   .word-tag.ok{background:var(--tape-green-dim); color:var(--tape-green);}
   .word-tag.bad{background:var(--rec-red-dim); color:var(--rec-red); text-decoration:underline wavy;}
+  .listen-btn{display:inline-flex; align-items:center; gap:5px; padding:5px 11px; border-radius:20px; border:1px solid var(--line); background:#fff; color:var(--tape-teal,#0B5951); font-size:12px; font-weight:600; cursor:pointer; margin-top:6px;}
+  .listen-btn:active{transform:scale(0.96);}
+  .listen-btn svg{width:13px; height:13px; flex:none;}
+  .listen-btn-sm{padding:3px 8px; font-size:11px; margin:0 0 0 8px; vertical-align:middle;}
 
   /* ============ VIDEO ============ */
   .video-today{
@@ -2475,6 +2479,7 @@
   function speechSchema(withTopic){
     var props = {
       transcript:{type:'STRING'},
+      correctedSentence:{type:'STRING'},
       meaningOk:{type:'BOOLEAN'},
       meaning:{type:'ARRAY', items:{type:'OBJECT', properties:{title:{type:'STRING'}, detail:{type:'STRING'}}, required:['title','detail']}},
       wordTags:{type:'ARRAY', items:{type:'OBJECT', properties:{t:{type:'STRING'}, ok:{type:'BOOLEAN'}}, required:['t','ok']}},
@@ -2482,7 +2487,7 @@
       translation:{type:'STRING'},
       meta:{type:'STRING'}
     };
-    var required = ['transcript','meaningOk','meaning','wordTags','pron','translation','meta'];
+    var required = ['transcript','correctedSentence','meaningOk','meaning','wordTags','pron','translation','meta'];
     if(withTopic){ props.topic = {type:'STRING'}; required.push('topic'); }
     return {type:'OBJECT', properties: props, required: required};
   }
@@ -2490,9 +2495,10 @@
     return 'Kamu tutor bahasa Inggris untuk pelajar Indonesia. Dengarkan rekaman audio berisi SATU kalimat bahasa Inggris yang diucapkan pengguna.\n\n' +
       'PENTING: audio ini adalah rekaman asli dari mikrofon pengguna, transkripsikan HANYA apa yang benar-benar terdengar. ' +
       'JANGAN mengarang atau menebak kalimat. Jika audio hening/tidak ada suara sama sekali, atau suara tidak jelas/bukan ucapan (noise, diam, dengungan), ' +
-      'isi transcript dengan string kosong "", set meaningOk ke false, kosongkan wordTags dan pron, dan isi meta dengan "tidak ada ucapan terdeteksi - coba rekam ulang".\n\n' +
+      'isi transcript dengan string kosong "", correctedSentence dengan string kosong "", set meaningOk ke false, kosongkan wordTags dan pron, dan isi meta dengan "tidak ada ucapan terdeteksi - coba rekam ulang".\n\n' +
       'Balas dalam format JSON sesuai skema. Field:\n' +
-      '- transcript: transkrip persis kalimat bahasa Inggris yang diucapkan.\n' +
+      '- transcript: transkrip persis kalimat bahasa Inggris yang diucapkan (apa adanya, termasuk kalau ada kesalahan grammar).\n' +
+      '- correctedSentence: SATU kalimat bahasa Inggris FINAL versi yang gramatikal 100% benar dan natural dari transcript di atas (kalau transcript sudah benar, isi persis sama dengan transcript). Ini akan diucapkan lewat text-to-speech ke pengguna sebagai contoh pengucapan yang benar, jadi pastikan rapi dan enak didengar.\n' +
       '- meaningOk: true jika grammar & makna kalimat sudah benar.\n' +
       '- meaning: array {title, detail} kesalahan grammar/makna dalam Bahasa Indonesia (kosongkan jika meaningOk true).\n' +
       '- wordTags: pecah transkrip jadi beberapa potongan kata/frasa {t, ok}, ok=false untuk bagian yang pengucapannya kurang tepat.\n' +
@@ -2501,10 +2507,49 @@
       '- meta: ringkasan singkat, contoh "1 koreksi \u00b7 pengucapan" atau "tidak ada koreksi - bagus!".';
   }
 
+  /* ============ TEXT-TO-SPEECH (gratis, browser native) ============ */
+  var latihEnVoices = [];
+  function loadLatihEnVoices(){
+    if(!('speechSynthesis' in window)) return;
+    latihEnVoices = window.speechSynthesis.getVoices().filter(function(v){
+      return v.lang && v.lang.toLowerCase().indexOf('en') === 0;
+    });
+  }
+  if('speechSynthesis' in window){
+    loadLatihEnVoices();
+    window.speechSynthesis.onvoiceschanged = loadLatihEnVoices;
+  }
+  function speakEnglish(text){
+    if(!text) return;
+    if(!('speechSynthesis' in window)){
+      alert('Browser ini belum mendukung fitur dengar (Text-to-Speech). Coba pakai Chrome, Edge, atau Safari versi terbaru.');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = 0.88;
+    var preferred = latihEnVoices.find(function(v){ return /^en-US/i.test(v.lang); }) || latihEnVoices[0];
+    if(preferred) u.voice = preferred;
+    window.speechSynthesis.speak(u);
+  }
+  window.latihSpeak = function(btn){
+    var text = btn.getAttribute('data-speak');
+    speakEnglish(text);
+  };
+  function speakBtnHtml(text, extraClass){
+    if(!text) return '';
+    return '<button type="button" class="listen-btn'+(extraClass?' '+extraClass:'')+'" data-speak="'+escapeHtml(text)+'" onclick="latihSpeak(this)" aria-label="Dengar pengucapan">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>' +
+      'Dengar</button>';
+  }
+
   function renderVoiceResult(e){
     var box = document.getElementById('voiceResult');
+    var correct = e.correctedSentence || e.sentence;
     var html = '<div class="vr-row"><div class="k">Kalimat</div><div class="v">"'+escapeHtml(e.sentence)+'"</div></div>' +
       '<div class="vr-row"><div class="k">Ketepatan ucap</div><div class="v">'+wordTagsHtml(e.wordTags)+'</div></div>' +
+      '<div class="vr-row"><div class="k">Kalimat yang benar</div><div class="v">"'+escapeHtml(correct)+'"'+speakBtnHtml(correct)+'</div></div>' +
       '<div class="panel-head sheet-section-label"><span class="eyebrow">Tata bahasa & makna</span></div>' +
       corrCardsHtml(e.meaning, 'Hasil', 'Tidak ada kesalahan makna - kalimat sudah tepat secara tata bahasa.') +
       pronCardsHtml(e.pron) +
@@ -2519,7 +2564,7 @@
     if(!list || !list.length) return '';
     return '<div class="panel-head sheet-section-label"><span class="eyebrow">Detail pengucapan</span></div>' +
       list.map(function(p){
-        return '<div class="corr" style="border-left-color:var(--info);"><div class="k">Pengucapan - "'+escapeHtml(p.word)+'"</div><div class="v">'+escapeHtml(p.ipa)+' - '+escapeHtml(p.tip)+'</div></div>';
+        return '<div class="corr" style="border-left-color:var(--info);"><div class="k">Pengucapan - "'+escapeHtml(p.word)+'"'+speakBtnHtml(p.word, 'listen-btn-sm')+'</div><div class="v">'+escapeHtml(p.ipa)+' - '+escapeHtml(p.tip)+'</div></div>';
       }).join('');
   }
 
@@ -2536,7 +2581,8 @@
       );
       var entry = {
         id:'v_'+Date.now(), ts: Date.now(), mimeType: blob.type||'audio/webm', audioBlob: blob,
-        sentence: result.transcript || '', wordTags: result.wordTags || [],
+        sentence: result.transcript || '', correctedSentence: result.correctedSentence || result.transcript || '',
+        wordTags: result.wordTags || [],
         meaning: result.meaning || [], pron: result.pron || [],
         translation: result.translation || '',
         status: (result.meaningOk===false || (result.pron&&result.pron.length)) ? 'err' : 'ok',
@@ -2632,10 +2678,11 @@
     return 'Kamu tutor bahasa Inggris untuk pelajar Indonesia. Dengarkan audio (diambil dari sebuah video) berisi pengguna berbicara bahasa Inggris (boleh beberapa kalimat).\n\n' +
       'PENTING: audio ini adalah rekaman asli dari video pengguna, transkripsikan HANYA apa yang benar-benar terdengar. ' +
       'JANGAN mengarang atau menebak kalimat. Jika audio hening/tidak ada suara sama sekali, atau suara tidak jelas/bukan ucapan (noise, diam, dengungan), ' +
-      'isi transcript dengan string kosong "", topic dengan "tidak ada ucapan terdeteksi", meaningOk ke false, kosongkan wordTags dan pron, dan isi meta dengan "tidak ada ucapan terdeteksi - coba rekam ulang".\n\n' +
+      'isi transcript dengan string kosong "", correctedSentence dengan string kosong "", topic dengan "tidak ada ucapan terdeteksi", meaningOk ke false, kosongkan wordTags dan pron, dan isi meta dengan "tidak ada ucapan terdeteksi - coba rekam ulang".\n\n' +
       'Balas dalam format JSON sesuai skema. Field:\n' +
       '- topic: topik singkat pembicaraan dalam Bahasa Indonesia (2-4 kata).\n' +
-      '- transcript: transkrip bahasa Inggris dari apa yang diucapkan.\n' +
+      '- transcript: transkrip bahasa Inggris dari apa yang diucapkan (apa adanya).\n' +
+      '- correctedSentence: versi FINAL yang gramatikal 100% benar dan natural dari seluruh transcript (kalau sudah benar, isi persis sama). Akan diucapkan lewat text-to-speech sebagai contoh yang benar.\n' +
       '- meaningOk: true jika grammar & makna keseluruhan sudah benar.\n' +
       '- meaning: array {title, detail} kesalahan grammar/makna dalam Bahasa Indonesia.\n' +
       '- wordTags: pecah transkrip jadi potongan {t, ok}, ok=false untuk bagian yang pengucapannya kurang tepat.\n' +
@@ -2791,7 +2838,8 @@
       var entry = {
         id:'vd_'+Date.now(), ts: Date.now(), mimeType: blob.type||'video/webm', videoBlob: blob, thumb: thumb,
         duration: fmtDur(duration), topic: result.topic || 'Latihan bicara',
-        sentence: result.transcript || '', wordTags: result.wordTags || [],
+        sentence: result.transcript || '', correctedSentence: result.correctedSentence || result.transcript || '',
+        wordTags: result.wordTags || [],
         meaning: result.meaning || [], pron: result.pron || [],
         translation: result.translation || '',
         status: (result.meaningOk===false || (result.pron&&result.pron.length)) ? 'err' : 'ok',
@@ -2944,6 +2992,7 @@
         '<audio controls style="width:100%; margin-top:10px;" src="'+activeObjectUrl+'"></audio>' +
         '<div class="vr-row" style="margin-top:10px;"><div class="k">Kalimat</div><div class="v">"'+escapeHtml(e.sentence)+'"</div></div>' +
         '<div class="vr-row"><div class="k">Ketepatan ucap</div><div class="v">'+wordTagsHtml(e.wordTags)+'</div></div>' +
+        '<div class="vr-row"><div class="k">Kalimat yang benar</div><div class="v">"'+escapeHtml(e.correctedSentence || e.sentence)+'"'+speakBtnHtml(e.correctedSentence || e.sentence)+'</div></div>' +
         '<div class="panel-head sheet-section-label"><span class="eyebrow">Tata bahasa & makna</span></div>' +
         corrCardsHtml(e.meaning, 'Hasil', 'Tidak ada kesalahan makna - kalimat sudah tepat.') +
         pronCardsHtml(e.pron) +
@@ -2958,6 +3007,7 @@
         '<video controls style="width:100%; border-radius:12px; margin-top:10px; background:#000;" src="'+activeObjectUrl+'"></video>' +
         '<div class="vr-row"><div class="k">Transkrip</div><div class="v">"'+escapeHtml(e.sentence)+'"</div></div>' +
         '<div class="vr-row"><div class="k">Ketepatan ucap</div><div class="v">'+wordTagsHtml(e.wordTags)+'</div></div>' +
+        '<div class="vr-row"><div class="k">Kalimat yang benar</div><div class="v">"'+escapeHtml(e.correctedSentence || e.sentence)+'"'+speakBtnHtml(e.correctedSentence || e.sentence)+'</div></div>' +
         '<div class="panel-head sheet-section-label"><span class="eyebrow">Tata bahasa & makna</span></div>' +
         corrCardsHtml(e.meaning, 'Hasil', 'Tidak ada kesalahan makna - kalimat sudah tepat.') +
         pronCardsHtml(e.pron) +
