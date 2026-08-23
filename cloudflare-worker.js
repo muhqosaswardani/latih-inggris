@@ -200,3 +200,4 @@ export default {
     }, 502);
   }
 };
+// test: trigger GitHub Actions auto-deploy 2026-08-23T17:07:23Z
