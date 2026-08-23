@@ -174,7 +174,7 @@
     display:flex; flex-direction:column; gap:18px;
     background:linear-gradient(135deg, var(--navy) 0%, var(--navy-soft) 100%);
     color:#fff; border-radius:20px; border:none;
-    padding:22px 20px; margin:8px 0 20px; position:relative; overflow:hidden;
+    padding:22px 20px; margin:20px 0 20px; position:relative; overflow:hidden;
     box-shadow:var(--shadow-card);
   }
   .hero-reel::after{
@@ -1448,7 +1448,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.4.2'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.4.3'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
