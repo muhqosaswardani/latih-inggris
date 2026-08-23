@@ -380,6 +380,7 @@
   .word-tag.bad{background:var(--rec-red-dim); color:var(--rec-red); text-decoration:underline wavy;}
   .listen-btn{display:inline-flex; align-items:center; gap:5px; padding:5px 11px; border-radius:20px; border:1px solid var(--line); background:#fff; color:var(--tape-teal,#0B5951); font-size:12px; font-weight:600; cursor:pointer; margin-top:6px;}
   .listen-btn:active{transform:scale(0.96);}
+  .listen-btn.is-loading{opacity:0.55; pointer-events:none;}
   .listen-btn svg{width:13px; height:13px; flex:none;}
   .listen-btn-sm{padding:3px 8px; font-size:11px; margin:0 0 0 8px; vertical-align:middle;}
 
@@ -1370,7 +1371,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 5;
-  var APP_VERSION = 'v1.0.1'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.1.0'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -2518,7 +2519,7 @@
       '- meta: ringkasan singkat, contoh "1 koreksi \u00b7 pengucapan" atau "tidak ada koreksi - bagus!".';
   }
 
-  /* ============ TEXT-TO-SPEECH (gratis, browser native) ============ */
+  /* ============ TEXT-TO-SPEECH (Gemini TTS via Worker, gratis di free tier; fallback browser) ============ */
   var latihEnVoices = [];
   function loadLatihEnVoices(){
     if(!('speechSynthesis' in window)) return;
@@ -2530,7 +2531,8 @@
     loadLatihEnVoices();
     window.speechSynthesis.onvoiceschanged = loadLatihEnVoices;
   }
-  function speakEnglish(text){
+  // Fallback: TTS bawaan browser (kualitas robotic tapi selalu tersedia & gratis)
+  function speakEnglishBrowser(text){
     if(!text) return;
     if(!('speechSynthesis' in window)){
       alert('Browser ini belum mendukung fitur dengar (Text-to-Speech). Coba pakai Chrome, Edge, atau Safari versi terbaru.');
@@ -2544,9 +2546,67 @@
     if(preferred) u.voice = preferred;
     window.speechSynthesis.speak(u);
   }
+  // Konversi PCM base64 (dari Gemini TTS, biasanya 24kHz 16-bit mono) jadi WAV Blob yang bisa diputar <audio>/Audio().
+  function pcmBase64ToWavBlob(base64, mimeType){
+    var rateMatch = /rate=(\d+)/.exec(mimeType || '');
+    var sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+    var bitsMatch = /L(\d+)/.exec(mimeType || '');
+    var bitsPerSample = bitsMatch ? parseInt(bitsMatch[1], 10) : 16;
+    var channels = 1;
+    var binary = atob(base64);
+    var len = binary.length;
+    var pcmBytes = new Uint8Array(len);
+    for(var i=0;i<len;i++){ pcmBytes[i] = binary.charCodeAt(i); }
+    var blockAlign = channels * (bitsPerSample/8);
+    var byteRate = sampleRate * blockAlign;
+    var buffer = new ArrayBuffer(44 + pcmBytes.length);
+    var view = new DataView(buffer);
+    function writeStr(offset, str){ for(var j=0;j<str.length;j++){ view.setUint8(offset+j, str.charCodeAt(j)); } }
+    writeStr(0,'RIFF'); view.setUint32(4, 36+pcmBytes.length, true); writeStr(8,'WAVE');
+    writeStr(12,'fmt '); view.setUint32(16,16,true); view.setUint16(20,1,true);
+    view.setUint16(22,channels,true); view.setUint32(24,sampleRate,true);
+    view.setUint32(28,byteRate,true); view.setUint16(32,blockAlign,true); view.setUint16(34,bitsPerSample,true);
+    writeStr(36,'data'); view.setUint32(40, pcmBytes.length, true);
+    new Uint8Array(buffer,44).set(pcmBytes);
+    return new Blob([buffer], {type:'audio/wav'});
+  }
+  var latihTtsAudioEl = null;
+  async function speakEnglishGemini(text){
+    if(!PROXY_URL || PROXY_URL.indexOf('ISI_DENGAN_URL_WORKER_KAMU') !== -1){
+      throw new Error('PROXY_URL belum diisi.');
+    }
+    var res = await fetch(PROXY_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ mode:'tts', text: text })
+    });
+    var data;
+    try{ data = await res.json(); }
+    catch(e){ throw new Error('Respons TTS server tidak valid (HTTP ' + res.status + ').'); }
+    if(!res.ok || data.error){ throw new Error((data && data.error) || ('HTTP ' + res.status)); }
+    return data; // {audioData, mimeType}
+  }
+  async function speakEnglish(text, btn){
+    if(!text) return;
+    if(btn){ btn.disabled = true; btn.classList.add('is-loading'); }
+    try{
+      var result = await speakEnglishGemini(text);
+      var blob = pcmBase64ToWavBlob(result.audioData, result.mimeType);
+      var url = URL.createObjectURL(blob);
+      if(latihTtsAudioEl){ try{ latihTtsAudioEl.pause(); }catch(e){} }
+      latihTtsAudioEl = new Audio(url);
+      latihTtsAudioEl.onended = function(){ URL.revokeObjectURL(url); };
+      await latihTtsAudioEl.play();
+    }catch(err){
+      // Gemini TTS gagal (limit habis, offline, dll) - fallback ke TTS browser, tetap gratis
+      speakEnglishBrowser(text);
+    }finally{
+      if(btn){ btn.disabled = false; btn.classList.remove('is-loading'); }
+    }
+  }
   window.latihSpeak = function(btn){
     var text = btn.getAttribute('data-speak');
-    speakEnglish(text);
+    speakEnglish(text, btn);
   };
   function speakBtnHtml(text, extraClass){
     if(!text) return '';
