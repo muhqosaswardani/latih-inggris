@@ -1357,7 +1357,7 @@
   // ==================================================================
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
-  var DB_NAME = 'latihDB', DB_VERSION = 6;
+  var DB_NAME = 'latihDB', DB_VERSION = 7;
   var APP_VERSION = 'v1.2.0'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
@@ -1372,6 +1372,9 @@
           if(!db.objectStoreNames.contains(store)) db.createObjectStore(store, {keyPath:'id'});
         });
         if(!db.objectStoreNames.contains('kamus')) db.createObjectStore('kamus', {keyPath:'word'});
+        // Kata yang AI kenali sebagai nama diri/bukan kosakata asli (mis. nama orang) -
+        // disimpan di sini biar gak ikut nongol/diterjemahkan ulang di tab Kamus.
+        if(!db.objectStoreNames.contains('kamusExclude')) db.createObjectStore('kamusExclude', {keyPath:'word'});
         if(!db.objectStoreNames.contains('rekapCache')) db.createObjectStore('rekapCache', {keyPath:'key'});
         // Cache audio Gemini TTS per teks, biar tombol "Dengar" main instan dari lokal
         // (audio digenerate & disimpan sekali saja, tepat setelah hasil koreksi voice/video keluar).
@@ -3193,10 +3196,32 @@
   // dan di-cache di IndexedDB (store 'kamus') biar gak nerjemahkan ulang tiap buka.
   // ==================================================================
   var KAMUS_MAP = {};
+  var KAMUS_EXCLUDE = {}; // kata yang AI tandai sebagai nama diri/bukan kosakata asli
   async function loadKamus(){
     var arr = await idbAll('kamus');
     KAMUS_MAP = {};
     arr.forEach(function(r){ KAMUS_MAP[r.word] = r; });
+    var exArr = await idbAll('kamusExclude');
+    KAMUS_EXCLUDE = {};
+    exArr.forEach(function(r){ KAMUS_EXCLUDE[r.word] = true; });
+    await cleanupNameLikeKamusEntries();
+  }
+  // Migrasi sekali jalan: entri kamus lama yang translation-nya cuma versi kapital dari
+  // kata itu sendiri (mis. "muhammad" - "Muhammad") berarti dulu AI cuma nebak nama diri,
+  // bukan benar-benar kata bahasa Inggris - pindahkan ke daftar exclude, bukan ditampilkan.
+  async function cleanupNameLikeKamusEntries(){
+    var words = Object.keys(KAMUS_MAP);
+    for(var i=0; i<words.length; i++){
+      var w = words[i];
+      if(KAMUS_EXCLUDE[w]) continue;
+      var tr = (KAMUS_MAP[w].translation || '').trim().toLowerCase();
+      if(tr && tr === w){
+        await idbDelete('kamus', w);
+        await idbPut('kamusExclude', {word: w, ts: Date.now()});
+        delete KAMUS_MAP[w];
+        KAMUS_EXCLUDE[w] = true;
+      }
+    }
   }
 
   function tokenizeWords(str){
@@ -3234,23 +3259,23 @@
     KETIK.forEach(function(e){ ketikGoodWords(e).forEach(function(w){ if(w) set[w] = true; }); });
     VOICE.forEach(function(e){ speechGoodWords(e).forEach(function(w){ if(w) set[w] = true; }); });
     VIDEO.forEach(function(e){ speechGoodWords(e).forEach(function(w){ if(w) set[w] = true; }); });
-    return Object.keys(set).sort();
+    return Object.keys(set).filter(function(w){ return !KAMUS_EXCLUDE[w]; }).sort();
   }
 
   var KAMUS_SCHEMA = {
     type:'OBJECT',
     properties:{
-      items:{type:'ARRAY', items:{type:'OBJECT', properties:{word:{type:'STRING'}, translation:{type:'STRING'}}, required:['word','translation']}}
+      items:{type:'ARRAY', items:{type:'OBJECT', properties:{word:{type:'STRING'}, translation:{type:'STRING'}, isName:{type:'BOOLEAN'}}, required:['word','translation','isName']}}
     },
     required:['items']
   };
   function kamusPrompt(words){
     return 'Kamu kamus Inggris-Indonesia untuk pelajar pemula. Untuk SETIAP kata bahasa Inggris di daftar berikut, ' +
       'berikan terjemahan ke Bahasa Indonesia, singkat & umum (tanpa tanda kutip, tanpa penjelasan tambahan). ' +
-      'Kalau kata itu punya lebih dari satu arti umum, tulis semua arti tsb dipisah koma, contoh "bisa, dapat, kaleng" untuk "can" - jangan dipaksa jadi satu arti saja. ' +
-      'Kalau kata itu nama diri/typo yang gak dikenal, terjemahkan sebaik mungkin sesuai konteks umum, jangan dikosongkan.\n\n' +
+      'Kalau kata itu punya lebih dari satu arti umum, tulis semua arti tsb dipisah koma, contoh "bisa, dapat, kaleng" untuk "can" - jangan dipaksa jadi satu arti saja.\n\n' +
+      'PENTING - deteksi nama diri: kalau suatu kata BUKAN kosakata bahasa Inggris asli, melainkan nama orang/nama pengguna/username (mis. "muhammad", "kusaswardani", atau nama orang lain), set isName ke true dan translation boleh diisi string kosong "" - kata seperti ini TIDAK termasuk kosakata yang perlu dipelajari jadi tidak perlu diterjemahkan. Untuk kata yang MEMANG kosakata bahasa Inggris asli (termasuk kalau kebetulan mirip nama tapi sebenarnya kata umum, mis. "Mark" sebagai kata kerja "menandai"), set isName ke false dan isi translation seperti biasa.\n\n' +
       'DAFTAR KATA:\n' + words.join(', ') + '\n\n' +
-      'Balas array items {word, translation} - HARUS mencakup semua kata di atas, urutan bebas.';
+      'Balas array items {word, translation, isName} - HARUS mencakup semua kata di atas, urutan bebas.';
   }
   async function translateKamusWords(words){
     if(!words.length) return;
@@ -3263,6 +3288,11 @@
         for(var j=0; j<items.length; j++){
           var w = (items[j].word || '').toLowerCase().trim();
           if(!w) continue;
+          if(items[j].isName){
+            KAMUS_EXCLUDE[w] = true;
+            await idbPut('kamusExclude', {word: w, ts: Date.now()});
+            continue;
+          }
           var rec = {word: w, translation: items[j].translation || '', ts: Date.now()};
           KAMUS_MAP[w] = rec;
           await idbPut('kamus', rec);
@@ -3306,7 +3336,7 @@
   async function refreshKamusTranslations(){
     if(kamusTranslating) return;
     var words = collectKamusWords();
-    var missing = words.filter(function(w){ return !KAMUS_MAP[w]; });
+    var missing = words.filter(function(w){ return !KAMUS_MAP[w] && !KAMUS_EXCLUDE[w]; });
     if(!missing.length) return;
     kamusTranslating = true;
     document.getElementById('kamusStatus').textContent = 'menerjemahkan ' + missing.length + ' kata baru dengan Gemini AI\u2026';
