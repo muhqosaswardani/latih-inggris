@@ -1370,8 +1370,8 @@
   // ==================================================================
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
-  var DB_NAME = 'latihDB', DB_VERSION = 5;
-  var APP_VERSION = 'v1.1.1'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var DB_NAME = 'latihDB', DB_VERSION = 6;
+  var APP_VERSION = 'v1.2.0'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -1386,6 +1386,9 @@
         });
         if(!db.objectStoreNames.contains('kamus')) db.createObjectStore('kamus', {keyPath:'word'});
         if(!db.objectStoreNames.contains('rekapCache')) db.createObjectStore('rekapCache', {keyPath:'key'});
+        // Cache audio Gemini TTS per teks, biar tombol "Dengar" main instan dari lokal
+        // (audio digenerate & disimpan sekali saja, tepat setelah hasil koreksi voice/video keluar).
+        if(!db.objectStoreNames.contains('ttsCache')) db.createObjectStore('ttsCache', {keyPath:'key'});
       };
       req.onsuccess = function(){ resolve(req.result); };
       req.onerror = function(){ reject(req.error); };
@@ -1416,6 +1419,15 @@
       tx.objectStore(store).delete(id);
       tx.oncomplete = function(){ resolve(); };
       tx.onerror = function(){ reject(tx.error); };
+    });
+  }
+  async function idbGet(store, id){
+    var db = await idbOpen();
+    return new Promise(function(resolve, reject){
+      var tx = db.transaction(store, 'readonly');
+      var req = tx.objectStore(store).get(id);
+      req.onsuccess = function(){ resolve(req.result || null); };
+      req.onerror = function(){ reject(req.error); };
     });
   }
   async function idbGetMeta(id){
@@ -2587,17 +2599,52 @@
     if(!res.ok || data.error){ throw new Error((data && data.error) || ('HTTP ' + res.status)); }
     return data; // {audioData, mimeType}
   }
+  function ttsCacheKey(text){ return (text||'').trim(); }
+  async function playWavBlob(blob){
+    var url = URL.createObjectURL(blob);
+    if(latihTtsAudioEl){ try{ latihTtsAudioEl.pause(); }catch(e){} }
+    latihTtsAudioEl = new Audio(url);
+    latihTtsAudioEl.onended = function(){ URL.revokeObjectURL(url); };
+    await latihTtsAudioEl.play();
+  }
+  // Generate audio Gemini TTS untuk satu teks dan simpan ke IndexedDB (ttsCache).
+  // Dipanggil sekali saat hasil analisa voice/video keluar, BUKAN saat tombol "Dengar" diklik,
+  // supaya waktu klik audio sudah siap (instan, tanpa delay panggil API).
+  async function cacheTtsFor(text){
+    var key = ttsCacheKey(text);
+    if(!key) return;
+    var existing = await idbGet('ttsCache', key).catch(function(){ return null; });
+    if(existing && existing.audioBlob) return; // sudah ada, tidak perlu generate ulang
+    var result = await speakEnglishGemini(key);
+    var blob = pcmBase64ToWavBlob(result.audioData, result.mimeType);
+    await idbPut('ttsCache', {key: key, audioBlob: blob, ts: Date.now()});
+  }
+  // Panggil setelah entry voice/video disimpan: generate+cache audio untuk kalimat yang benar
+  // dan tiap kata yang butuh koreksi pengucapan. Jalan di background (tidak blocking UI),
+  // gagal diam-diam per kata (fallback browser TTS tetap tersedia saat user klik nanti).
+  function prefetchTtsCache(texts){
+    (texts||[]).filter(Boolean).forEach(function(t){
+      cacheTtsFor(t).catch(function(err){
+        console.warn('Gagal precache TTS untuk "'+t+'":', err && err.message);
+      });
+    });
+  }
   async function speakEnglish(text, btn){
     if(!text) return;
     if(btn){ btn.disabled = true; btn.classList.add('is-loading'); }
     try{
-      var result = await speakEnglishGemini(text);
+      var key = ttsCacheKey(text);
+      var cached = await idbGet('ttsCache', key).catch(function(){ return null; });
+      if(cached && cached.audioBlob){
+        await playWavBlob(cached.audioBlob);
+        return;
+      }
+      // Belum ada di cache (mis. entri lama sebelum fitur ini ada) - generate seperti biasa,
+      // sekalian simpan biar klik berikutnya instan.
+      var result = await speakEnglishGemini(key);
       var blob = pcmBase64ToWavBlob(result.audioData, result.mimeType);
-      var url = URL.createObjectURL(blob);
-      if(latihTtsAudioEl){ try{ latihTtsAudioEl.pause(); }catch(e){} }
-      latihTtsAudioEl = new Audio(url);
-      latihTtsAudioEl.onended = function(){ URL.revokeObjectURL(url); };
-      await latihTtsAudioEl.play();
+      idbPut('ttsCache', {key: key, audioBlob: blob, ts: Date.now()}).catch(function(){});
+      await playWavBlob(blob);
     }catch(err){
       // Gemini TTS gagal (limit habis, offline, dll) - fallback ke TTS browser, tetap gratis
       speakEnglishBrowser(text);
@@ -2665,6 +2712,7 @@
       renderVoiceResult(entry);
       renderVoiceLists();
       renderHeader();
+      prefetchTtsCache([entry.correctedSentence].concat((entry.pron||[]).map(function(p){ return p.word; })));
     }catch(err){
       document.getElementById('voiceErrorText').textContent = err.message;
       voiceErrorBox.style.display = 'block';
@@ -2922,6 +2970,7 @@
       renderVideoLists();
       renderCalendar();
       renderHeader();
+      prefetchTtsCache([entry.correctedSentence].concat((entry.pron||[]).map(function(p){ return p.word; })));
       document.getElementById('videoTodayLabel').textContent = 'Video hari ini sudah diisi \u2713';
       document.getElementById('videoTodayNote').textContent = 'Topik: ' + entry.topic + ' \u00b7 ' + entry.duration;
     }catch(err){
