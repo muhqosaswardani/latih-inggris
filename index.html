@@ -99,6 +99,11 @@
     letter-spacing:0.02em; color:#FFFFFF;
   }
   .brand .mark::after{content:"."; color:var(--amber);}
+  .brand .ver-tag{
+    font-family:var(--mono); font-size:9px; letter-spacing:0.03em;
+    color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.1);
+    padding:2px 6px; border-radius:8px; white-space:nowrap;
+  }
   .brand .sub{
     font-family:var(--mono); font-size:10.5px; letter-spacing:0.09em;
     color:rgba(255,255,255,0.62); text-transform:uppercase; display:none;
@@ -769,6 +774,7 @@
       <button id="installBtn" class="mark-btn" type="button" aria-label="Instal App">
         <span class="mark">LATIH</span>
       </button>
+      <span class="ver-tag" id="verTag">v1.0.0</span>
       <span class="sub">log praktik harian</span>
     </div>
     <div class="streak-widget">
@@ -1364,6 +1370,11 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 5;
+  var APP_VERSION = 'v1.0.1'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  (function(){
+    var vt = document.getElementById('verTag');
+    if(vt) vt.textContent = APP_VERSION;
+  })();
   function idbOpen(){
     return new Promise(function(resolve, reject){
       var req = indexedDB.open(DB_NAME, DB_VERSION);
