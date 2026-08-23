@@ -1371,7 +1371,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 5;
-  var APP_VERSION = 'v1.1.0'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.1.1'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -2510,13 +2510,14 @@
       'isi transcript dengan string kosong "", correctedSentence dengan string kosong "", set meaningOk ke false, kosongkan wordTags dan pron, dan isi meta dengan "tidak ada ucapan terdeteksi - coba rekam ulang".\n\n' +
       'Balas dalam format JSON sesuai skema. Field:\n' +
       '- transcript: transkrip persis kalimat bahasa Inggris yang diucapkan (apa adanya, termasuk kalau ada kesalahan grammar).\n' +
-      '- correctedSentence: SATU kalimat bahasa Inggris FINAL versi yang gramatikal 100% benar dan natural dari transcript di atas (kalau transcript sudah benar, isi persis sama dengan transcript). Ini akan diucapkan lewat text-to-speech ke pengguna sebagai contoh pengucapan yang benar, jadi pastikan rapi dan enak didengar.\n' +
+      '- correctedSentence: SATU kalimat bahasa Inggris FINAL versi yang gramatikal 100% benar dan natural. WAJIB: perbaiki SEMUA masalah yang kamu sebutkan di field "meaning" di bawah - correctedSentence dan meaning HARUS KONSISTEN. Contoh: kalau di "meaning" kamu bilang kalimat "I 28" seharusnya "I am 28" (kurang kata kerja "am"), maka correctedSentence WAJIB sudah mengandung "I am 28", bukan "I 28" lagi. JANGAN sekadar menyalin ulang transcript dengan sedikit perubahan kosmetik - tulis ulang kalimat itu secara utuh sampai benar-benar gramatikal, alami, dan enak didengar, walau harus mengubah banyak kata. Kalau transcript sudah 100% benar, correctedSentence sama persis dengan transcript. Field ini akan diucapkan lewat text-to-speech ke pengguna sebagai contoh yang benar, jadi WAJIB benar-benar bebas kesalahan grammar.\n' +
       '- meaningOk: true jika grammar & makna kalimat sudah benar.\n' +
       '- meaning: array {title, detail} kesalahan grammar/makna dalam Bahasa Indonesia (kosongkan jika meaningOk true).\n' +
       '- wordTags: pecah transkrip jadi beberapa potongan kata/frasa {t, ok}, ok=false untuk bagian yang pengucapannya kurang tepat.\n' +
       '- pron: untuk tiap kata yang pengucapannya kurang tepat, {word, ipa (notasi IPA), tip (tips pengucapan dalam Bahasa Indonesia)}. Kosongkan jika semua sudah baik.\n' +
       '- translation: terjemahan kalimat ke Bahasa Indonesia.\n' +
-      '- meta: ringkasan singkat, contoh "1 koreksi \u00b7 pengucapan" atau "tidak ada koreksi - bagus!".';
+      '- meta: ringkasan singkat, contoh "1 koreksi \u00b7 pengucapan" atau "tidak ada koreksi - bagus!".\n\n' +
+      'WAJIB DICEK ULANG sebelum menjawab: baca lagi correctedSentence kamu dari awal sampai akhir seolah kamu guru bahasa Inggris native yang teliti - apakah kalimat itu sudah 100% gramatikal dan masuk akal? Kalau masih ada bagian yang janggal atau tidak lengkap (seperti kata kerja "to be" yang hilang, subjek-predikat tidak cocok, atau frasa yang tidak jelas maknanya), PERBAIKI DULU sebelum menjawab.';
   }
 
   /* ============ TEXT-TO-SPEECH (Gemini TTS via Worker, gratis di free tier; fallback browser) ============ */
@@ -2753,7 +2754,7 @@
       'Balas dalam format JSON sesuai skema. Field:\n' +
       '- topic: topik singkat pembicaraan dalam Bahasa Indonesia (2-4 kata).\n' +
       '- transcript: transkrip bahasa Inggris dari apa yang diucapkan (apa adanya).\n' +
-      '- correctedSentence: versi FINAL yang gramatikal 100% benar dan natural dari seluruh transcript (kalau sudah benar, isi persis sama). Akan diucapkan lewat text-to-speech sebagai contoh yang benar.\n' +
+      '- correctedSentence: versi FINAL yang gramatikal 100% benar dan natural dari seluruh transcript. WAJIB: perbaiki SEMUA masalah yang kamu sebutkan di "meaning" - correctedSentence dan meaning HARUS KONSISTEN, jangan sekadar menyalin ulang transcript dengan perubahan kosmetik. Tulis ulang penuh sampai benar-benar gramatikal (kalau transcript sudah benar, isi persis sama). Akan diucapkan lewat text-to-speech sebagai contoh yang benar, jadi WAJIB bebas kesalahan grammar - cek ulang sebelum menjawab.\n' +
       '- meaningOk: true jika grammar & makna keseluruhan sudah benar.\n' +
       '- meaning: array {title, detail} kesalahan grammar/makna dalam Bahasa Indonesia.\n' +
       '- wordTags: pecah transkrip jadi potongan {t, ok}, ok=false untuk bagian yang pengucapannya kurang tepat.\n' +
