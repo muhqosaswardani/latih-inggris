@@ -112,18 +112,30 @@ GB/bulan. Dari kuota gratis R2 10 GB → tahan **±9-10 bulan** kalau riwayat
 lama tidak pernah dihapus, dan jauh lebih awet lagi begitu fitur hapus
 riwayat rentang tanggal (poin 5) mulai dipakai rutin.
 
-## 7. Langkah setup manual yang dibutuhkan (dari pengguna, di dashboard Cloudflare)
+## 7. 🙋 Langkah MANUAL (harus dilakukan pengguna sendiri, tidak bisa didelegasikan)
 
-Belum dilakukan — akan dipandu step-by-step lewat screenshot seperti proses
-setup Firebase untuk Tunas:
+AI (Claude/Antigravity) **tidak punya akses** ke dashboard Cloudflare
+pengguna — bagian ini wajib dikerjakan sendiri di browser, dipandu
+step-by-step lewat screenshot (pola yang sama seperti setup Firebase untuk
+app Tunas):
 
-1. Buat **R2 bucket** baru (mis. nama `latih-media`).
-2. Buat **D1 database** baru (mis. nama `latih-db`).
+1. Buat **R2 bucket** baru (mis. nama `latih-media`), di dashboard Cloudflare
+   > R2.
+2. Buat **D1 database** baru (mis. nama `latih-db`), di dashboard Cloudflare
+   > Workers & Pages > D1.
 3. Bind R2 bucket dan D1 database ke Worker `latih-proxy` yang sudah ada
-   (lewat Settings > Bindings di dashboard Worker, atau via `wrangler.toml`
-   yang sudah ada di repo).
+   (lewat Settings > Bindings di dashboard Worker).
 
-## 8. Langkah eksekusi kode (belum dilakukan)
+Setelah 3 langkah ini selesai, sisanya (section 8 di bawah) **sepenuhnya**
+dikerjakan AI lewat akses repo GitHub — tidak perlu pengguna sentuh kode
+sama sekali.
+
+## 8. 🤖 Langkah OTOMATIS (dieksekusi AI/Antigravity lewat akses repo GitHub, belum dilakukan)
+
+Semua poin di bawah ini dikerjakan lewat `git clone` + edit file + commit +
+push ke repo `latih-inggris` (butuh token GitHub & fitur code
+execution aktif di chat — lihat catatan di bagian atas konteks project).
+Pengguna tinggal cek hasilnya, tidak perlu menulis kode sendiri:
 
 1. Definisikan skema tabel D1 (satu tabel per jenis: `ketik`, `voice`,
    `video`, `baca`, `kamus`, `kamus_exclude`).
@@ -138,3 +150,8 @@ setup Firebase untuk Tunas:
 5. Naikkan `APP_VERSION` (sekarang `v1.4.4`) dan `DB_VERSION` IndexedDB kalau
    ada perubahan skema store lokal.
 6. Commit & push ke repo `latih-inggris`.
+
+**Catatan untuk chat baru:** kalau ada 1 saja langkah di section 7 yang
+belum kamu lakukan, bilang ke AI supaya dipandu dulu step-by-step sebelum
+lanjut ke section 8 — soalnya D1/R2 binding harus ada dulu sebelum kode di
+Worker bisa dites jalan.
