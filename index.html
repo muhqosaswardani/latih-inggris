@@ -2470,7 +2470,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.6.5'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.6.6'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -2628,14 +2628,33 @@
     }
   }
 
+  function extractSizeFromEntry(e){
+    if(!e) return 0;
+    if(e.videoBlob && e.videoBlob.size) return e.videoBlob.size;
+    if(e.audioBlob && e.audioBlob.size) return e.audioBlob.size;
+    if(e.size && Number(e.size) > 0) return Number(e.size);
+    if(e.meta && typeof e.meta === 'string'){
+      var m = e.meta.match(/__sz:(\d+)/);
+      if(m && Number(m[1]) > 0) return Number(m[1]);
+    }
+    return 0;
+  }
+
+  function cleanMetaText(metaStr){
+    return String(metaStr || '').replace(/\s*__sz:\d+/, '').trim();
+  }
+
   function stripBlobForCloud(entry){
     var copy = {};
     for(var k in entry){
       if(k !== 'audioBlob' && k !== 'videoBlob') copy[k] = entry[k];
     }
-    if(entry.videoBlob && entry.videoBlob.size) copy.size = entry.videoBlob.size;
-    else if(entry.audioBlob && entry.audioBlob.size) copy.size = entry.audioBlob.size;
-    else if(entry.size) copy.size = entry.size;
+    var realSize = extractSizeFromEntry(entry);
+    if(realSize > 0){
+      copy.size = realSize;
+      var cMeta = cleanMetaText(entry.meta);
+      copy.meta = cMeta ? (cMeta + ' __sz:' + realSize) : ('__sz:' + realSize);
+    }
     if(!copy.blob_key && copy.id) copy.blob_key = copy.id;
     return copy;
   }
@@ -3082,15 +3101,21 @@
     // 1. Hitung ukuran riil dari data lokal jika sudah ada (tanpa angka perkiraan palsu)
     if(typeof VIDEO !== 'undefined' && Array.isArray(VIDEO)){
       VIDEO.forEach(function(e){
-        if(e.videoBlob && e.videoBlob.size) videoBytes += e.videoBlob.size;
-        else if(e.size) videoBytes += Number(e.size);
+        var sz = extractSizeFromEntry(e);
+        if(sz > 0){
+          e.size = sz;
+          videoBytes += sz;
+        }
       });
     }
 
     if(typeof VOICE !== 'undefined' && Array.isArray(VOICE)){
       VOICE.forEach(function(e){
-        if(e.audioBlob && e.audioBlob.size) voiceBytes += e.audioBlob.size;
-        else if(e.size) voiceBytes += Number(e.size);
+        var sz = extractSizeFromEntry(e);
+        if(sz > 0){
+          e.size = sz;
+          voiceBytes += sz;
+        }
       });
     }
 
@@ -3157,16 +3182,16 @@
       }
     }catch(err){}
 
-    // 3. Jika di desktop ada entri yang belum ada ukurannya, ambil Content-Length dari cloud di background
+    // 3. Jika di desktop ada entri yang belum ada ukurannya, ambil Content-Length dari Cloudflare KV via abort stream
     var missingSizeEntries = [];
     if(typeof VIDEO !== 'undefined' && Array.isArray(VIDEO)){
       VIDEO.forEach(function(e){
-        if(!e.videoBlob && !e.size && (e.blob_key || e.id)) missingSizeEntries.push({ scope:'video', e: e });
+        if(!extractSizeFromEntry(e) && (e.blob_key || e.id)) missingSizeEntries.push({ scope:'video', e: e });
       });
     }
     if(typeof VOICE !== 'undefined' && Array.isArray(VOICE)){
       VOICE.forEach(function(e){
-        if(!e.audioBlob && !e.size && (e.blob_key || e.id)) missingSizeEntries.push({ scope:'voice', e: e });
+        if(!extractSizeFromEntry(e) && (e.blob_key || e.id)) missingSizeEntries.push({ scope:'voice', e: e });
       });
     }
     if(missingSizeEntries.length > 0 && navigator.onLine && PROXY_URL){
@@ -3175,8 +3200,14 @@
         for(var i=0; i<missingSizeEntries.length; i++){
           var m = missingSizeEntries[i];
           try{
-            var hRes = await fetch(PROXY_URL + '/blob/' + encodeURIComponent(m.e.blob_key || m.e.id), { method: 'HEAD' });
+            var controller = new AbortController();
+            var hRes = await fetch(PROXY_URL + '/blob/' + encodeURIComponent(m.e.blob_key || m.e.id), {
+              method: 'GET',
+              headers: { 'Range': 'bytes=0-0' },
+              signal: controller.signal
+            });
             var len = hRes.headers.get('Content-Length');
+            controller.abort();
             if(len && Number(len) > 0){
               m.e.size = Number(len);
               await idbPut(m.scope, m.e);
@@ -3187,7 +3218,7 @@
         if(updated){
           updateStorageIndicator();
         }
-      }, 500);
+      }, 50);
     }
   }
 
