@@ -2452,7 +2452,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.6.2'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.6.3'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -3356,37 +3356,6 @@
       overlay.classList.remove('show');
       document.body.style.overflow = '';
     }
-  }
-
-    setExportStatus('Menghapus ' + items.length + ' entri dari lokal dan cloud...');
-    setCloudBadge('syncing', 'Menghapus...');
-
-    // 1. Hapus dari IndexedDB lokal & filter array memori
-    for(var i=0; i<items.length; i++){
-      var it = items[i];
-      await idbDelete(it.scope, it.entry.id);
-    }
-    var idSet = {};
-    items.forEach(function(it){ idSet[it.entry.id] = true; });
-
-    KETIK = KETIK.filter(function(e){ return !idSet[e.id]; });
-    VOICE = VOICE.filter(function(e){ return !idSet[e.id]; });
-    VIDEO = VIDEO.filter(function(e){ return !idSet[e.id]; });
-    BACA = BACA.filter(function(e){ return !idSet[e.id]; });
-
-    // 2. Hapus dari Cloud (D1 & KV)
-    for(var sc in groupedIds){
-      if(groupedIds[sc].length){
-        await deleteFromCloud(sc, groupedIds[sc]);
-      }
-    }
-
-    renderKetikLists(); renderVoiceLists(); renderVideoLists(); renderBacaLists();
-    renderCalendar(); renderHeader();
-    updateRangeCountPreview();
-
-    setCloudBadge('ok', 'Cloud Tersinkron');
-    setExportStatus('Berhasil menghapus ' + items.length + ' entri riwayat.');
   }
 
   // ==================================================================
