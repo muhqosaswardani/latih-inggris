@@ -235,7 +235,7 @@
     display:grid; grid-template-rows:repeat(7,11px); gap:3px; flex:none;
     font-family:var(--mono); font-size:8.5px; color:var(--ink-faint); text-align:center; width:12px; padding-top:1px;
   }
-  .ycal-scroll{overflow-x:auto; padding-bottom:2px; -webkit-overflow-scrolling:touch;}
+  .ycal-scroll{overflow-x:auto; padding-bottom:2px; -webkit-overflow-scrolling:touch; scroll-behavior:smooth;}
   .ycal-scroll::-webkit-scrollbar{height:5px;}
   .ycal-scroll::-webkit-scrollbar-thumb{background:var(--line-dark); border-radius:3px;}
   .ycal-grid{display:grid; grid-auto-flow:column; grid-template-rows:repeat(7,11px); grid-auto-columns:11px; gap:3px;}
@@ -1223,7 +1223,7 @@
       <button id="installBtn" class="mark-btn" type="button" aria-label="Instal App">
         <span class="mark">LATIH</span>
       </button>
-      <span class="ver-tag" id="verTag">v1.5.1</span>
+      <span class="ver-tag" id="verTag">v1.5.2</span>
       <span class="sub">log praktik harian</span>
     </div>
     <div class="streak-widget">
@@ -1974,7 +1974,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.5.1'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.5.2'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -2859,6 +2859,7 @@
     if(!opts.silent){ window.scrollTo({top:0, behavior:'smooth'}); }
     if(name === 'rekap'){ ensureRekapLoaded(); }
     if(name === 'kamus'){ ensureKamusLoaded(); }
+    if(name === 'ringkasan'){ scrollCalendarToToday(true); }
     try{ localStorage.setItem('latih_active_tab', name); }catch(e){}
   }
   topTabs.forEach(function(b){ b.addEventListener('click', function(){ goTo(b.dataset.tab); }); });
@@ -3003,13 +3004,54 @@
       cursor.setDate(cursor.getDate() + 1);
     }
     document.getElementById('ycalGrid').innerHTML = html;
+    scrollCalendarToToday(false);
   }
+
+  function scrollCalendarToToday(smooth){
+    function doScroll(){
+      var scrollEl = document.querySelector('.ycal-scroll');
+      if(!scrollEl) return;
+      var todayEl = scrollEl.querySelector('.ycal-cell.today');
+      if(!todayEl) return;
+      var scrollRect = scrollEl.getBoundingClientRect();
+      if(!scrollRect.width) return;
+      var todayRect = todayEl.getBoundingClientRect();
+      // Posisikan tengah hari ini di tengah kontainer scroll horizontal
+      var diff = (todayRect.left + todayRect.width / 2) - (scrollRect.left + scrollRect.width / 2);
+      var targetScroll = Math.max(0, Math.round(scrollEl.scrollLeft + diff));
+      if(smooth && typeof scrollEl.scrollTo === 'function'){
+        scrollEl.scrollTo({ left: targetScroll, behavior: 'smooth' });
+      } else {
+        scrollEl.scrollLeft = targetScroll;
+      }
+    }
+    requestAnimationFrame(doScroll);
+    setTimeout(doScroll, 80);
+    setTimeout(doScroll, 250);
+  }
+
   document.getElementById('ycalPrev').addEventListener('click', function(){
     ycalYearShown--; renderActivityCalendar();
+    var currentYear = new Date().getFullYear();
+    if(ycalYearShown === currentYear) scrollCalendarToToday(true);
+    else {
+      var s = document.querySelector('.ycal-scroll');
+      if(s) s.scrollLeft = 0;
+    }
   });
   document.getElementById('ycalNext').addEventListener('click', function(){
     if(ycalYearShown >= new Date().getFullYear()) return;
     ycalYearShown++; renderActivityCalendar();
+    var currentYear = new Date().getFullYear();
+    if(ycalYearShown === currentYear) scrollCalendarToToday(true);
+    else {
+      var s = document.querySelector('.ycal-scroll');
+      if(s) s.scrollLeft = 0;
+    }
+  });
+
+  window.addEventListener('resize', function(){
+    scrollCalendarToToday(false);
   });
 
   // ==================================================================
