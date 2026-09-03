@@ -902,7 +902,7 @@
     border-radius: 12px;
     padding: 11px 14px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
     transition: border-color .15s ease, box-shadow .15s ease;
@@ -952,15 +952,33 @@
   .preview-entry-sub{
     font-size: 11.5px;
     color: var(--ink-soft);
-    margin-top: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+  .preview-media-wrap{
+    margin-top: 10px;
+    width: 100%;
+  }
+  .preview-audio-player{
+    width: 100%;
+    height: 34px;
+    border-radius: 8px;
+    display: block;
+    outline: none;
+  }
+  .preview-video-player{
+    width: 100%;
+    max-height: 190px;
+    border-radius: 10px;
+    background: #000;
+    display: block;
+    outline: none;
+    object-fit: contain;
   }
   .preview-entry-btn-dl{
     flex: none;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 8px;
     border: 1px solid var(--line);
     background: var(--paper-alt);
@@ -2452,7 +2470,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.6.3'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.6.4'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -3245,10 +3263,17 @@
   // ==================================================================
   var activePreviewFilter = 'all';
   var cachedPreviewItems = [];
+  var previewObjectUrls = [];
+
+  function clearPreviewMediaUrls(){
+    previewObjectUrls.forEach(function(u){ try{ URL.revokeObjectURL(u); }catch(e){} });
+    previewObjectUrls = [];
+  }
 
   function renderPreviewList(){
     var listEl = document.getElementById('previewModalList');
     if(!listEl) return;
+    clearPreviewMediaUrls();
     var filtered = cachedPreviewItems;
     if(activePreviewFilter !== 'all'){
       filtered = cachedPreviewItems.filter(function(it){ return it.scope === activePreviewFilter; });
@@ -3266,13 +3291,38 @@
       var badgeLabel = sc === 'ketik' ? 'Ketik' : sc === 'voice' ? 'Voice' : sc === 'video' ? 'Video' : 'Baca';
       var title = '';
       var sub = '';
+      var mediaHtml = '';
 
       if(sc === 'video'){
         title = e.topic || 'Latihan Bicara Video';
         sub = (e.duration ? e.duration + ' · ' : '') + '"' + escapeHtml(e.sentence || '') + '"';
+        var videoSrc = '';
+        if(e.videoBlob){
+          videoSrc = URL.createObjectURL(e.videoBlob);
+          previewObjectUrls.push(videoSrc);
+        } else if(e.blob_key || e.id){
+          videoSrc = PROXY_URL + '/blob/' + encodeURIComponent(e.blob_key || e.id);
+        }
+        if(videoSrc){
+          mediaHtml = '<div class="preview-media-wrap">' +
+            '<video controls playsinline preload="metadata" class="preview-video-player" poster="' + escapeHtml(e.thumb || '') + '" src="' + videoSrc + '"></video>' +
+          '</div>';
+        }
       } else if(sc === 'voice'){
         title = e.topic || 'Latihan Bicara Voice';
         sub = (e.duration ? e.duration + ' · ' : '') + '"' + escapeHtml(e.sentence || '') + '"';
+        var audioSrc = '';
+        if(e.audioBlob){
+          audioSrc = URL.createObjectURL(e.audioBlob);
+          previewObjectUrls.push(audioSrc);
+        } else if(e.blob_key || e.id){
+          audioSrc = PROXY_URL + '/blob/' + encodeURIComponent(e.blob_key || e.id);
+        }
+        if(audioSrc){
+          mediaHtml = '<div class="preview-media-wrap">' +
+            '<audio controls preload="none" class="preview-audio-player" src="' + audioSrc + '"></audio>' +
+          '</div>';
+        }
       } else if(sc === 'ketik'){
         var cleanTxt = (e.text || '').replace(/\s+/g, ' ').trim();
         title = cleanTxt ? '"' + escapeHtml(cleanTxt.slice(0, 60)) + (cleanTxt.length > 60 ? '...' : '') + '"' : 'Tulisan Ketik';
@@ -3292,6 +3342,7 @@
           '</div>' +
           '<div class="preview-entry-title">' + title + '</div>' +
           '<div class="preview-entry-sub">' + sub + '</div>' +
+          mediaHtml +
         '</div>' +
         '<button type="button" class="preview-entry-btn-dl" data-prev-scope="' + sc + '" data-prev-id="' + e.id + '" title="Unduh file ini">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>' +
@@ -3356,6 +3407,14 @@
       overlay.classList.remove('show');
       document.body.style.overflow = '';
     }
+    // Pause audio/video yg sedang diputar di pratinjau
+    var listEl = document.getElementById('previewModalList');
+    if(listEl){
+      listEl.querySelectorAll('video, audio').forEach(function(el){
+        try{ el.pause(); el.src = ''; }catch(e){}
+      });
+    }
+    clearPreviewMediaUrls();
   }
 
   // ==================================================================
