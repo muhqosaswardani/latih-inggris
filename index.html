@@ -1957,10 +1957,10 @@
         </div>
       </div>
 
-      <!-- HASIL ANALISIS VIDEO (tampil setelah rekam, sebelum simpan ke riwayat) -->
+      <!-- HASIL ANALISIS VIDEO (tampil setelah rekam & otomatis tersimpan) -->
       <div id="videoResultPanel" style="display:none;" class="card" style="margin-top:16px; width:100%; text-align:left;">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-          <span class="eyebrow">Hasil Rekaman</span>
+          <span class="eyebrow">Hasil Rekaman (Tersimpan)</span>
           <span id="videoResultStatusBadge"></span>
         </div>
         <video id="videoResultPlayer" controls playsinline style="width:100%; border-radius:10px; background:#000; margin-bottom:12px; display:block;"></video>
@@ -1969,10 +1969,6 @@
         <div class="vr-row"><div class="k">Kalimat yang benar</div><div class="v" id="videoResultCorrected"></div></div>
         <div class="vr-row" id="videoResultMeaningRow" style="display:none;"><div class="k">Catatan</div><div class="v" id="videoResultMeaning"></div></div>
         <div class="vr-row"><div class="k">Arti</div><div class="v" id="videoResultTranslation"></div></div>
-        <div style="display:flex; gap:10px; margin-top:16px;">
-          <button type="button" class="btn btn-primary" id="btnSaveVideoResult" style="flex:1;">✓ Simpan ke Riwayat</button>
-          <button type="button" class="btn btn-ghost" id="btnRetakeVideo" style="flex:1;">↺ Rekam Ulang</button>
-        </div>
       </div>
 
       <div class="panel-head" style="margin-top:28px;">
@@ -2281,7 +2277,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.5.8'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.5.9'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -5134,7 +5130,18 @@
         meta: result.meta || 'selesai dianalisis'
       };
       entry.blob_key = entry.id;
-      // TAMPILKAN HASIL DULU - jangan langsung simpan ke riwayat
+      // Otomatis tersimpan ke riwayat (murni sekali take, persis seperti Ketik & Voice)
+      uploadBlobToCloud(entry.id, blob);
+      await idbPut('video', entry);
+      scheduleCloudPush('video', entry);
+      VIDEO.unshift(entry);
+      renderVideoLists();
+      renderCalendar();
+      renderHeader();
+      prefetchTtsCache([entry.correctedSentence].concat((entry.pron||[]).map(function(p){ return p.word; })));
+      document.getElementById('videoTodayLabel').textContent = 'Video hari ini sudah diisi \u2713';
+      document.getElementById('videoTodayNote').textContent = 'Topik: ' + entry.topic + ' \u00b7 ' + entry.duration;
+      // Tampilkan hasil rekaman dan analisis
       showVideoResultPanel(entry);
     }catch(err){
       document.getElementById('videoErrorText').textContent = err.message;
@@ -5187,35 +5194,6 @@
     var file = videoFileInput.files[0];
     videoFileInput.value = '';
     if(file) processVideoBlob(file);
-  });
-
-  // Tombol Simpan ke Riwayat (dari result panel)
-  document.getElementById('btnSaveVideoResult').addEventListener('click', async function(){
-    if(!pendingVideoEntry) return;
-    var entry = pendingVideoEntry;
-    hideVideoResultPanel();
-    videoLoading.classList.add('show');
-    try{
-      uploadBlobToCloud(entry.id, entry.videoBlob);
-      await idbPut('video', entry);
-      scheduleCloudPush('video', entry);
-      VIDEO.unshift(entry);
-      renderVideoLists();
-      renderCalendar();
-      renderHeader();
-      prefetchTtsCache([entry.correctedSentence].concat((entry.pron||[]).map(function(p){ return p.word; })));
-      document.getElementById('videoTodayLabel').textContent = 'Video hari ini sudah diisi \u2713';
-      document.getElementById('videoTodayNote').textContent = 'Topik: ' + entry.topic + ' \u00b7 ' + entry.duration;
-    } finally {
-      videoLoading.classList.remove('show');
-    }
-  });
-
-  // Tombol Rekam Ulang (dari result panel)
-  document.getElementById('btnRetakeVideo').addEventListener('click', function(){
-    hideVideoResultPanel();
-    document.getElementById('videoTodayLabel').textContent = 'Video hari ini belum diisi';
-    document.getElementById('videoTodayNote').textContent = 'Belum diisi akan tercatat "belum" di rekap harian.';
   });
 
   function renderVideoCard(e, idx){
