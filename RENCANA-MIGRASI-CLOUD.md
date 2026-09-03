@@ -1,7 +1,7 @@
 # Rencana Migrasi Cloud — LATIH. (latih-inggris)
 
-Status: **Rencana "Plan B" (tanpa kartu/pendaftaran baru), belum dieksekusi ke kode.**
-Dibuat: 1 September 2026. Direvisi: 3 September 2026 (ganti dari R2 ke Workers KV).
+Status: **Sudah dieksekusi ke kode (versi v1.5.0, 3 September 2026).**
+Dibuat: 1 September 2026. Direvisi & Dieksekusi: 3 September 2026 (Workers KV + Cloudflare D1).
 
 ---
 

@@ -938,19 +938,64 @@
     </div>
 
     <div class="card sync-card">
-      <span class="eyebrow">Backup data</span>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+        <span class="eyebrow">Sinkronisasi Cloud & Backup</span>
+        <span id="cloudSyncBadge" style="font-size:11px; font-weight:700; color:var(--navy); background:var(--tape-green-dim); padding:3px 10px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;">
+          <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--tape-green);"></span>
+          <span id="cloudSyncBadgeText">Cloud Siap</span>
+        </span>
+      </div>
       <div class="sync-row">
         <div class="sync-info">
-          <div class="sync-status" id="exportStatusText">Backup atau pulihkan data lewat file.</div>
+          <div class="sync-status" id="exportStatusText">Sinkronisasi otomatis D1 & Workers KV aktif.</div>
           <div class="sync-filename" id="exportFileInfo"></div>
         </div>
-        <div class="sync-actions">
-          <button class="btn btn-ghost" id="btnImportData">Import data</button>
-          <button class="btn btn-primary" id="btnExportData">Export data</button>
+        <div class="sync-actions" style="flex-wrap:wrap;">
+          <button class="btn btn-ghost" id="btnSyncNow" title="Sinkronkan data dengan cloud sekarang">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; margin-right:4px; vertical-align:-2px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg>Sync Cloud
+          </button>
+          <button class="btn btn-ghost" id="btnImportData">Import JSON</button>
+          <button class="btn btn-primary" id="btnExportData">Export JSON</button>
           <input type="file" id="importFileInput" accept="application/json" style="display:none;">
         </div>
       </div>
-      <p class="sync-hint">Export mengunduh semua data ke satu file .json. Import file itu di perangkat lain untuk memindahkan datanya.</p>
+
+      <!-- MANAJEMEN RENTANG TANGGAL -->
+      <div class="range-manage-box" style="margin-top:16px; padding-top:14px; border-top:1px dashed var(--line);">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+          <span class="eyebrow" style="color:var(--ink);">Riwayat & Media Berbasis Rentang Tanggal</span>
+          <span style="font-size:11.5px; font-weight:600; color:var(--ink-soft);" id="rangeCountSummary">0 entri terpilih</span>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-bottom:12px;">
+          <div>
+            <label for="rangeScopeSelect" style="display:block; font-size:11px; font-weight:600; color:var(--ink-soft); margin-bottom:4px;">Kategori</label>
+            <select id="rangeScopeSelect" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--line-dark); background:#fff; font-family:inherit; font-size:13px; color:var(--ink);">
+              <option value="all">Semua Kategori</option>
+              <option value="ketik">Ketik (Tulisan)</option>
+              <option value="voice">Voice (Audio)</option>
+              <option value="video">Video (Rekaman)</option>
+              <option value="baca">Baca (Cerita)</option>
+            </select>
+          </div>
+          <div>
+            <label for="rangeDateFrom" style="display:block; font-size:11px; font-weight:600; color:var(--ink-soft); margin-bottom:4px;">Dari Tanggal</label>
+            <input type="date" id="rangeDateFrom" style="width:100%; padding:7px 10px; border-radius:8px; border:1px solid var(--line-dark); background:#fff; font-family:inherit; font-size:13px; color:var(--ink);">
+          </div>
+          <div>
+            <label for="rangeDateTo" style="display:block; font-size:11px; font-weight:600; color:var(--ink-soft); margin-bottom:4px;">Sampai Tanggal</label>
+            <input type="date" id="rangeDateTo" style="width:100%; padding:7px 10px; border-radius:8px; border:1px solid var(--line-dark); background:#fff; font-family:inherit; font-size:13px; color:var(--ink);">
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-ghost" id="btnDownloadRange" style="flex:1; min-width:140px; font-size:13px; font-weight:600;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; margin-right:4px; vertical-align:-2px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Unduh File Media
+          </button>
+          <button class="btn btn-ghost" id="btnDeleteRange" style="flex:1; min-width:140px; font-size:13px; font-weight:600; color:var(--rec-red); border-color:var(--rec-red-dim); background:var(--rec-red-dim);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; margin-right:4px; vertical-align:-2px;"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/></svg>Hapus Riwayat Rentang
+          </button>
+        </div>
+      </div>
+      <p class="sync-hint" style="margin-top:12px;">Hapus riwayat rentang tanggal membersihkan data di IndexedDB lokal dan Cloudflare D1, serta menghapus rekaman di Workers KV agar kuota tetap lega.</p>
     </div>
 
     <div class="panel-head">
@@ -1448,7 +1493,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.4.4'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.5.0'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -1531,11 +1576,381 @@
   }
 
   // ==================================================================
-  // EXPORT / IMPORT DATA (backup manual antar perangkat)
-  // Aplikasi ini jalan lokal di HP (IndexedDB per-browser/per-perangkat).
-  // Export -> unduh 1 file .json berisi semua entri (blob audio/video
-  // ikut disertakan sebagai base64). Import -> pilih file itu di
-  // perangkat lain untuk memuat datanya (digabung, bukan menimpa).
+  // CLOUD SYNC & MEDIA MANAGEMENT (Cloudflare D1 & Workers KV)
+  // ==================================================================
+  function setExportStatus(text){
+    var el = document.getElementById('exportStatusText');
+    if(el) el.textContent = text;
+  }
+
+  function setCloudBadge(state, text){
+    var badge = document.getElementById('cloudSyncBadge');
+    var badgeText = document.getElementById('cloudSyncBadgeText');
+    if(!badge || !badgeText) return;
+    badgeText.textContent = text;
+    if(state === 'syncing'){
+      badge.style.color = 'var(--info)';
+      badge.style.background = 'var(--info-dim)';
+      var dot = badge.querySelector('span');
+      if(dot) dot.style.background = 'var(--info)';
+    } else if(state === 'ok'){
+      badge.style.color = 'var(--navy)';
+      badge.style.background = 'var(--tape-green-dim)';
+      var dot = badge.querySelector('span');
+      if(dot) dot.style.background = 'var(--tape-green)';
+    } else if(state === 'err'){
+      badge.style.color = 'var(--rec-red)';
+      badge.style.background = 'var(--rec-red-dim)';
+      var dot = badge.querySelector('span');
+      if(dot) dot.style.background = 'var(--rec-red)';
+    }
+  }
+
+  async function uploadBlobToCloud(blobId, blob){
+    if(!PROXY_URL || !blob) return;
+    try{
+      var mime = blob.type || 'application/octet-stream';
+      await fetch(PROXY_URL + '/blob/' + encodeURIComponent(blobId), {
+        method: 'PUT',
+        headers: { 'Content-Type': mime },
+        body: blob
+      });
+    }catch(err){
+      console.warn('Gagal upload blob ke KV:', err);
+    }
+  }
+
+  async function deleteBlobFromCloud(blobId){
+    if(!PROXY_URL || !blobId) return;
+    try{
+      await fetch(PROXY_URL + '/blob/' + encodeURIComponent(blobId), { method: 'DELETE' });
+    }catch(err){
+      console.warn('Gagal hapus blob di KV:', err);
+    }
+  }
+
+  async function deleteFromCloud(scope, ids){
+    if(!PROXY_URL || !ids || !ids.length) return;
+    try{
+      await fetch(PROXY_URL + '/sync/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scope: scope, ids: ids })
+      });
+    }catch(err){
+      console.warn('Gagal hapus data di cloud:', err);
+    }
+  }
+
+  var pendingCloudPush = { ketik: [], voice: [], video: [], baca: [], kamus: [], kamusExclude: [] };
+  var cloudPushTimer = null;
+
+  function stripBlobForCloud(entry){
+    var copy = {};
+    for(var k in entry){
+      if(k !== 'audioBlob' && k !== 'videoBlob') copy[k] = entry[k];
+    }
+    if(!copy.blob_key && copy.id) copy.blob_key = copy.id;
+    return copy;
+  }
+
+  function scheduleCloudPush(scope, entry){
+    if(!pendingCloudPush[scope]) pendingCloudPush[scope] = [];
+    if(scope === 'voice' || scope === 'video') pendingCloudPush[scope].push(stripBlobForCloud(entry));
+    else pendingCloudPush[scope].push(entry);
+
+    if(cloudPushTimer) clearTimeout(cloudPushTimer);
+    setCloudBadge('syncing', 'Menyinkronkan...');
+    cloudPushTimer = setTimeout(flushCloudPush, 1800);
+  }
+
+  async function flushCloudPush(){
+    if(!PROXY_URL) return;
+    var payload = pendingCloudPush;
+    pendingCloudPush = { ketik: [], voice: [], video: [], baca: [], kamus: [], kamusExclude: [] };
+    cloudPushTimer = null;
+
+    var total = (payload.ketik.length + payload.voice.length + payload.video.length +
+                 payload.baca.length + payload.kamus.length + payload.kamusExclude.length);
+    if(total === 0){
+      setCloudBadge('ok', 'Cloud Tersinkron');
+      return;
+    }
+
+    try{
+      var res = await fetch(PROXY_URL + '/sync/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      setCloudBadge('ok', 'Cloud Tersinkron');
+      setExportStatus('Tersinkron ke cloud (' + total + ' perubahan baru).');
+    }catch(err){
+      console.warn('Gagal push ke cloud:', err);
+      setCloudBadge('err', 'Sync Tertunda');
+      setExportStatus('Sync cloud tertunda (offline). Data aman di lokal.');
+    }
+  }
+
+  async function cloudPullAndMerge(){
+    if(!PROXY_URL) return;
+    try{
+      setCloudBadge('syncing', 'Menarik Data...');
+      var res = await fetch(PROXY_URL + '/sync/pull');
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      var data = await res.json();
+      if(!data || !data.ok) return;
+
+      var scopes = [
+        { scope: 'ketik', list: KETIK, cloud: data.ketik },
+        { scope: 'voice', list: VOICE, cloud: data.voice },
+        { scope: 'video', list: VIDEO, cloud: data.video },
+        { scope: 'baca', list: BACA, cloud: data.baca }
+      ];
+
+      var addedAny = false;
+      for(var s = 0; s < scopes.length; s++){
+        var item = scopes[s];
+        var localMap = {};
+        item.list.forEach(function(e){ localMap[e.id] = e; });
+        var cloudArr = item.cloud || [];
+        for(var i = 0; i < cloudArr.length; i++){
+          var c = cloudArr[i];
+          if(!c || !c.id) continue;
+          if(!localMap[c.id]){
+            localMap[c.id] = c;
+            item.list.push(c);
+            await idbPut(item.scope, c);
+            addedAny = true;
+          } else {
+            // Jika lokal belum punya blob_key tapi cloud punya
+            if(!localMap[c.id].blob_key && c.blob_key){
+              localMap[c.id].blob_key = c.blob_key;
+              await idbPut(item.scope, localMap[c.id]);
+            }
+          }
+        }
+        sortDesc(item.list);
+      }
+
+      // Kamus
+      var cloudKamus = data.kamus || [];
+      for(var k = 0; k < cloudKamus.length; k++){
+        var kw = cloudKamus[k];
+        if(!kw || !kw.word) continue;
+        var wNorm = kw.word.toLowerCase().trim();
+        if(!KAMUS_MAP[wNorm]){
+          KAMUS_MAP[wNorm] = kw;
+          await idbPut('kamus', kw);
+        }
+      }
+
+      // Kamus Exclude
+      var cloudEx = data.kamusExclude || [];
+      for(var x = 0; x < cloudEx.length; x++){
+        var kx = cloudEx[x];
+        if(!kx || !kx.word) continue;
+        var exNorm = kx.word.toLowerCase().trim();
+        if(!KAMUS_EXCLUDE[exNorm]){
+          KAMUS_EXCLUDE[exNorm] = true;
+          await idbPut('kamusExclude', kx);
+        }
+      }
+
+      renderKetikLists(); renderVoiceLists(); renderVideoLists(); renderBacaLists();
+      renderCalendar(); renderHeader();
+      updateRangeCountPreview();
+      setCloudBadge('ok', 'Cloud Tersinkron');
+      setExportStatus('Tersinkron otomatis dengan Cloudflare D1 & KV.');
+    }catch(err){
+      console.warn('Gagal pull cloud:', err.message);
+      setCloudBadge('err', 'Mode Offline');
+      setExportStatus('Mode offline: data lokal aktif.');
+    }
+  }
+
+  // ==================================================================
+  // DOWNLOAD FILE ASLI & MANAJEMEN RENTANG TANGGAL
+  // ==================================================================
+  function saveBlobLocally(blob, filename){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }
+
+  async function downloadSingleEntryFile(scope, e){
+    if(!e) return;
+    if(scope === 'voice'){
+      var blob = e.audioBlob;
+      if(!blob && (e.blob_key || e.id)){
+        try{
+          var res = await fetch(PROXY_URL + '/blob/' + encodeURIComponent(e.blob_key || e.id));
+          if(res.ok) blob = await res.blob();
+        }catch(err){}
+      }
+      if(blob){
+        var ext = (blob.type && blob.type.indexOf('mp4') !== -1) ? 'mp4' : 'webm';
+        saveBlobLocally(blob, 'latih-voice-' + (e.id || Date.now()) + '.' + ext);
+      } else {
+        alert('File audio tidak ditemukan di lokal maupun cloud.');
+      }
+    } else if(scope === 'video'){
+      var blob = e.videoBlob;
+      if(!blob && (e.blob_key || e.id)){
+        try{
+          var res = await fetch(PROXY_URL + '/blob/' + encodeURIComponent(e.blob_key || e.id));
+          if(res.ok) blob = await res.blob();
+        }catch(err){}
+      }
+      if(blob){
+        var ext = (blob.type && blob.type.indexOf('mp4') !== -1) ? 'mp4' : 'webm';
+        saveBlobLocally(blob, 'latih-video-' + (e.id || Date.now()) + '.' + ext);
+      } else {
+        alert('File video tidak ditemukan di lokal maupun cloud.');
+      }
+    } else if(scope === 'ketik'){
+      var txt = 'LATIH. - Latihan Menulis (Ketik)\nTanggal: ' + fmtFullDate(e.ts) + ' ' + fmtTime(e.ts) + '\n\n' +
+        'TULISAN:\n' + (e.text || '') + '\n\n' +
+        'KALIMAT BENAR:\n' + (e.correctedSentence || e.text || '') + '\n\n' +
+        'ARTI:\n' + (e.translation || '-') + '\n\n' +
+        'CATATAN:\n' + (e.note || '-');
+      var b = new Blob([txt], {type:'text/plain;charset=utf-8'});
+      saveBlobLocally(b, 'latih-ketik-' + (e.id || Date.now()) + '.txt');
+    } else if(scope === 'baca'){
+      var paras = (e.paragraphs || []).map(function(p, i){
+        return (i+1) + '. ' + p.en + '\n   ' + p.id;
+      }).join('\n\n');
+      var txt = 'LATIH. - ' + (e.title || 'Baca Cerita') + '\n' +
+        'Arti Judul: ' + (e.titleId || '-') + '\n' +
+        'Tanggal: ' + fmtFullDate(e.ts) + ' ' + fmtTime(e.ts) + '\n\n' +
+        paras;
+      var b = new Blob([txt], {type:'text/plain;charset=utf-8'});
+      saveBlobLocally(b, 'latih-baca-' + (e.id || Date.now()) + '.txt');
+    }
+  }
+
+  function getEntriesInRange(scope, dateFromStr, dateToStr){
+    var startTs = dateFromStr ? new Date(dateFromStr + 'T00:00:00').getTime() : 0;
+    var endTs = dateToStr ? new Date(dateToStr + 'T23:59:59.999').getTime() : Infinity;
+
+    var results = [];
+    if(scope === 'all' || scope === 'ketik'){
+      KETIK.forEach(function(e){ if(e.ts >= startTs && e.ts <= endTs) results.push({scope:'ketik', entry:e}); });
+    }
+    if(scope === 'all' || scope === 'voice'){
+      VOICE.forEach(function(e){ if(e.ts >= startTs && e.ts <= endTs) results.push({scope:'voice', entry:e}); });
+    }
+    if(scope === 'all' || scope === 'video'){
+      VIDEO.forEach(function(e){ if(e.ts >= startTs && e.ts <= endTs) results.push({scope:'video', entry:e}); });
+    }
+    if(scope === 'all' || scope === 'baca'){
+      BACA.forEach(function(e){ if(e.ts >= startTs && e.ts <= endTs) results.push({scope:'baca', entry:e}); });
+    }
+    return results;
+  }
+
+  function updateRangeCountPreview(){
+    var scopeEl = document.getElementById('rangeScopeSelect');
+    var fromEl = document.getElementById('rangeDateFrom');
+    var toEl = document.getElementById('rangeDateTo');
+    var summaryEl = document.getElementById('rangeCountSummary');
+    if(!scopeEl || !fromEl || !toEl || !summaryEl) return;
+
+    var items = getEntriesInRange(scopeEl.value, fromEl.value, toEl.value);
+    summaryEl.textContent = items.length + ' entri terpilih';
+  }
+
+  async function handleRangeDownload(){
+    var scopeEl = document.getElementById('rangeScopeSelect');
+    var fromEl = document.getElementById('rangeDateFrom');
+    var toEl = document.getElementById('rangeDateTo');
+    var items = getEntriesInRange(scopeEl.value, fromEl.value, toEl.value);
+
+    if(!items.length){
+      alert('Tidak ada riwayat pada rentang tanggal yang dipilih.');
+      return;
+    }
+
+    if(items.length > 20){
+      if(!confirm('Anda akan mengunduh ' + items.length + ' file sekaligus. Lanjutkan?')) return;
+    }
+
+    setExportStatus('Mengunduh ' + items.length + ' file media...');
+    for(var i=0; i<items.length; i++){
+      await downloadSingleEntryFile(items[i].scope, items[i].entry);
+      // jeda singkat antar file agar browser tidak memblokir multi-download
+      if(items.length > 1) await new Promise(function(r){ setTimeout(r, 450); });
+    }
+    setExportStatus('Selesai mengunduh ' + items.length + ' file.');
+  }
+
+  async function handleRangeDelete(){
+    var scopeEl = document.getElementById('rangeScopeSelect');
+    var fromEl = document.getElementById('rangeDateFrom');
+    var toEl = document.getElementById('rangeDateTo');
+    var items = getEntriesInRange(scopeEl.value, fromEl.value, toEl.value);
+
+    if(!items.length){
+      alert('Tidak ada riwayat pada rentang tanggal yang dipilih.');
+      return;
+    }
+
+    var counts = { ketik: 0, voice: 0, video: 0, baca: 0 };
+    var groupedIds = { ketik: [], voice: [], video: [], baca: [] };
+    items.forEach(function(it){
+      counts[it.scope]++;
+      groupedIds[it.scope].push(it.entry.id);
+    });
+
+    var summaryTxt = [];
+    if(counts.ketik) summaryTxt.push(counts.ketik + ' ketik');
+    if(counts.voice) summaryTxt.push(counts.voice + ' voice');
+    if(counts.video) summaryTxt.push(counts.video + ' video');
+    if(counts.baca) summaryTxt.push(counts.baca + ' baca');
+
+    var msg = 'PERINGATAN: Hapus permanen ' + items.length + ' entri riwayat (' + summaryTxt.join(', ') + ')?\n\n' +
+      'Data akan dihapus dari IndexedDB lokal dan Cloudflare D1, serta seluruh file rekaman terkait di Workers KV akan dihapus agar kuota bersih.\n\nTindakan ini tidak bisa dibatalkan.';
+    if(!confirm(msg)) return;
+
+    setExportStatus('Menghapus ' + items.length + ' entri dari lokal dan cloud...');
+    setCloudBadge('syncing', 'Menghapus...');
+
+    // 1. Hapus dari IndexedDB lokal & filter array memori
+    for(var i=0; i<items.length; i++){
+      var it = items[i];
+      await idbDelete(it.scope, it.entry.id);
+    }
+    var idSet = {};
+    items.forEach(function(it){ idSet[it.entry.id] = true; });
+
+    KETIK = KETIK.filter(function(e){ return !idSet[e.id]; });
+    VOICE = VOICE.filter(function(e){ return !idSet[e.id]; });
+    VIDEO = VIDEO.filter(function(e){ return !idSet[e.id]; });
+    BACA = BACA.filter(function(e){ return !idSet[e.id]; });
+
+    // 2. Hapus dari Cloud (D1 & KV)
+    for(var sc in groupedIds){
+      if(groupedIds[sc].length){
+        await deleteFromCloud(sc, groupedIds[sc]);
+      }
+    }
+
+    renderKetikLists(); renderVoiceLists(); renderVideoLists(); renderBacaLists();
+    renderCalendar(); renderHeader();
+    updateRangeCountPreview();
+
+    setCloudBadge('ok', 'Cloud Tersinkron');
+    setExportStatus('Berhasil menghapus ' + items.length + ' entri riwayat.');
+  }
+
+  // ==================================================================
+  // EXPORT / IMPORT DATA JSON MANUAL (backup lengkap)
   // ==================================================================
   function base64ToBlob(b64, mime){
     var bin = atob(b64);
@@ -1558,6 +1973,7 @@
     }
     return copy;
   }
+
   function deserializeEntry(scope, o){
     var copy = {};
     for(var k in o){ if(k !== 'audioB64' && k !== 'audioMime' && k !== 'videoB64' && k !== 'videoMime') copy[k] = o[k]; }
@@ -1570,16 +1986,14 @@
     var ketikArr = await Promise.all(KETIK.map(function(e){ return serializeEntry('ketik', e); }));
     var voiceArr = await Promise.all(VOICE.map(function(e){ return serializeEntry('voice', e); }));
     var videoArr = await Promise.all(VIDEO.map(function(e){ return serializeEntry('video', e); }));
+    var bacaArr = await idbAll('baca');
     var kamusArr = await idbAll('kamus');
+    var kamusExArr = await idbAll('kamusExclude');
     return {
-      version: 1, app: 'LATIH.', exportedAt: Date.now(),
-      ketik: ketikArr, voice: voiceArr, video: videoArr, kamus: kamusArr
+      version: 2, app: 'LATIH.', exportedAt: Date.now(),
+      ketik: ketikArr, voice: voiceArr, video: videoArr, baca: bacaArr,
+      kamus: kamusArr, kamusExclude: kamusExArr
     };
-  }
-
-  function setExportStatus(text){
-    var el = document.getElementById('exportStatusText');
-    if(el) el.textContent = text;
   }
 
   async function exportData(){
@@ -1597,7 +2011,7 @@
       a.href = url; a.download = fname;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
-      var total = payload.ketik.length + payload.voice.length + payload.video.length;
+      var total = payload.ketik.length + payload.voice.length + payload.video.length + (payload.baca||[]).length;
       setExportStatus('Terunduh: ' + fname + ' \u00b7 ' + total + ' entri.');
     }catch(err){
       setExportStatus('Gagal export: ' + err.message);
@@ -1615,7 +2029,7 @@
       var data;
       try{ data = JSON.parse(text); }catch(e){ throw new Error('File bukan JSON backup LATIH. yang valid.'); }
 
-      var scopes = [['ketik', KETIK], ['voice', VOICE], ['video', VIDEO]];
+      var scopes = [['ketik', KETIK], ['voice', VOICE], ['video', VIDEO], ['baca', BACA]];
       var added = 0;
       for(var s=0; s<scopes.length; s++){
         var scope = scopes[s][0], arr = scopes[s][1];
@@ -1630,20 +2044,34 @@
           byId[raw.id] = true;
           arr.push(deserialized);
           await idbPut(scope, deserialized);
+          scheduleCloudPush(scope, deserialized);
           added++;
         }
         sortDesc(arr);
       }
-      // gabungkan kamus juga (kalau ada), tanpa menimpa terjemahan yang sudah ada
+
+      // Kamus
       var kamusArr = (data && data.kamus) || [];
       for(var kIdx=0; kIdx<kamusArr.length; kIdx++){
         var kw = kamusArr[kIdx];
         if(!kw || !kw.word || KAMUS_MAP[kw.word]) continue;
         KAMUS_MAP[kw.word] = kw;
         await idbPut('kamus', kw);
+        scheduleCloudPush('kamus', kw);
       }
 
-      renderKetikLists(); renderVoiceLists(); renderVideoLists(); renderCalendar(); renderHeader();
+      // Kamus Exclude
+      var kamusExArr = (data && data.kamusExclude) || [];
+      for(var xIdx=0; xIdx<kamusExArr.length; xIdx++){
+        var kx = kamusExArr[xIdx];
+        if(!kx || !kx.word || KAMUS_EXCLUDE[kx.word]) continue;
+        KAMUS_EXCLUDE[kx.word] = true;
+        await idbPut('kamusExclude', kx);
+        scheduleCloudPush('kamusExclude', kx);
+      }
+
+      renderKetikLists(); renderVoiceLists(); renderVideoLists(); renderBacaLists(); renderCalendar(); renderHeader();
+      updateRangeCountPreview();
       setExportStatus('Import selesai \u00b7 ' + added + ' entri baru ditambahkan.');
     }catch(err){
       setExportStatus('Gagal import: ' + err.message);
@@ -1651,6 +2079,23 @@
       btn.disabled = false;
     }
   }
+
+  // Event Listeners Sync, Range, dan Backup
+  var btnSyncNow = document.getElementById('btnSyncNow');
+  if(btnSyncNow) btnSyncNow.addEventListener('click', function(){ cloudPullAndMerge(); flushCloudPush(); });
+
+  var scopeSel = document.getElementById('rangeScopeSelect');
+  var dFrom = document.getElementById('rangeDateFrom');
+  var dTo = document.getElementById('rangeDateTo');
+  if(scopeSel) scopeSel.addEventListener('change', updateRangeCountPreview);
+  if(dFrom) dFrom.addEventListener('change', updateRangeCountPreview);
+  if(dTo) dTo.addEventListener('change', updateRangeCountPreview);
+
+  var btnDownRange = document.getElementById('btnDownloadRange');
+  if(btnDownRange) btnDownRange.addEventListener('click', handleRangeDownload);
+
+  var btnDelRange = document.getElementById('btnDeleteRange');
+  if(btnDelRange) btnDelRange.addEventListener('click', handleRangeDelete);
 
   document.getElementById('btnExportData').addEventListener('click', exportData);
   document.getElementById('btnImportData').addEventListener('click', function(){
@@ -2435,6 +2880,7 @@
         meta: result.meta || (result.hasError ? (result.corrections||[]).length+' koreksi' : 'tidak ada koreksi - bagus!')
       };
       await idbPut('ketik', entry);
+      scheduleCloudPush('ketik', entry);
       KETIK.unshift(entry);
       renderKetikReview(entry);
       renderKetikLists();
@@ -2601,6 +3047,7 @@
         paragraphs: result.paragraphs || []
       };
       await idbPut('baca', entry);
+      scheduleCloudPush('baca', entry);
       BACA.unshift(entry);
       document.getElementById('bacaStoryBlock').innerHTML = storyReaderHtml(entry, {hideToggle:true});
       resetBacaTranslateBtn();
@@ -2882,7 +3329,10 @@
         status: (result.meaningOk===false || (result.pron&&result.pron.length)) ? 'err' : 'ok',
         meta: result.meta || 'selesai dianalisis'
       };
+      entry.blob_key = entry.id;
+      uploadBlobToCloud(entry.id, blob);
       await idbPut('voice', entry);
+      scheduleCloudPush('voice', entry);
       VOICE.unshift(entry);
       renderVoiceResult(entry);
       renderVoiceLists();
@@ -3141,7 +3591,10 @@
         status: (result.meaningOk===false || (result.pron&&result.pron.length)) ? 'err' : 'ok',
         meta: result.meta || 'selesai dianalisis'
       };
+      entry.blob_key = entry.id;
+      uploadBlobToCloud(entry.id, blob);
       await idbPut('video', entry);
+      scheduleCloudPush('video', entry);
       VIDEO.unshift(entry);
       renderVideoLists();
       renderCalendar();
@@ -3262,7 +3715,10 @@
   }
 
   var currentDetailScope = null, currentDetailIdx = null;
-  var deleteBtnHtml = '<button type="button" class="sheet-delete-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/></svg>Hapus riwayat ini</button>';
+  var sheetActionsHtml = '<div style="display:flex; gap:10px; margin-top:18px;">' +
+    '<button type="button" class="btn btn-ghost sheet-download-btn" style="flex:1; font-size:13px; font-weight:700;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px; height:15px; margin-right:5px; vertical-align:-2px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Unduh file</button>' +
+    '<button type="button" class="sheet-delete-btn" style="flex:1; margin-top:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/></svg>Hapus</button>' +
+  '</div>';
 
   function openDetail(scope, idx){
     var html = '', title = '', eyebrow = '';
@@ -3279,14 +3735,20 @@
         '<div class="panel-head sheet-section-label"><span class="eyebrow">Koreksi</span></div>' +
         corrCardsHtml(e.corrections, 'Hasil', 'Tidak ada koreksi - tulisan sudah tepat.') +
         (e.note ? '<div class="corr" style="margin-top:10px; border-left-color:var(--tape-green);"><div class="k">Catatan pola</div><div class="v">'+escapeHtml(e.note)+'</div></div>' : '') +
-        deleteBtnHtml;
+        sheetActionsHtml;
     } else if(scope === 'voice'){
       var e = VOICE[idx];
       eyebrow = 'Riwayat \u00b7 Voice';
       title = fmtDateShort(e.ts) + ' \u00b7 ' + fmtTime(e.ts);
-      activeObjectUrl = URL.createObjectURL(e.audioBlob);
+      var audioSrc = '';
+      if(e.audioBlob){
+        activeObjectUrl = URL.createObjectURL(e.audioBlob);
+        audioSrc = activeObjectUrl;
+      } else if(e.blob_key || e.id){
+        audioSrc = PROXY_URL + '/blob/' + encodeURIComponent(e.blob_key || e.id);
+      }
       html = statusLabel(e.status) +
-        '<audio controls style="width:100%; margin-top:10px;" src="'+activeObjectUrl+'"></audio>' +
+        (audioSrc ? '<audio controls style="width:100%; margin-top:10px;" src="'+audioSrc+'"></audio>' : '<div class="sync-hint" style="margin-top:8px;">Audio tidak tersedia.</div>') +
         '<div class="vr-row" style="margin-top:10px;"><div class="k">Kalimat</div><div class="v">"'+escapeHtml(e.sentence)+'"</div></div>' +
         '<div class="vr-row"><div class="k">Ketepatan ucap</div><div class="v">'+wordTagsHtml(e.wordTags)+'</div></div>' +
         '<div class="vr-row"><div class="k">Kalimat yang benar</div><div class="v">"'+escapeHtml(e.correctedSentence || e.sentence)+'"'+speakBtnHtml(e.correctedSentence || e.sentence)+'</div></div>' +
@@ -3294,14 +3756,20 @@
         corrCardsHtml(e.meaning, 'Hasil', 'Tidak ada kesalahan makna - kalimat sudah tepat.') +
         pronCardsHtml(e.pron) +
         '<div class="vr-row" style="margin-top:14px;"><div class="k">Arti kalimat</div><div class="v">'+escapeHtml(e.translation)+'</div></div>' +
-        deleteBtnHtml;
+        sheetActionsHtml;
     } else if(scope === 'video'){
       var e = VIDEO[idx];
       eyebrow = 'Riwayat \u00b7 Video - ' + (e.topic || '');
       title = fmtDateShort(e.ts) + ' \u00b7 ' + fmtTime(e.ts);
-      activeObjectUrl = URL.createObjectURL(e.videoBlob);
+      var videoSrc = '';
+      if(e.videoBlob){
+        activeObjectUrl = URL.createObjectURL(e.videoBlob);
+        videoSrc = activeObjectUrl;
+      } else if(e.blob_key || e.id){
+        videoSrc = PROXY_URL + '/blob/' + encodeURIComponent(e.blob_key || e.id);
+      }
       html = statusLabel(e.status) +
-        '<video controls style="width:100%; border-radius:12px; margin-top:10px; background:#000;" src="'+activeObjectUrl+'"></video>' +
+        (videoSrc ? '<video controls style="width:100%; border-radius:12px; margin-top:10px; background:#000;" src="'+videoSrc+'"></video>' : '<div class="sync-hint" style="margin-top:8px;">Video tidak tersedia.</div>') +
         '<div class="vr-row"><div class="k">Transkrip</div><div class="v">"'+escapeHtml(e.sentence)+'"</div></div>' +
         '<div class="vr-row"><div class="k">Ketepatan ucap</div><div class="v">'+wordTagsHtml(e.wordTags)+'</div></div>' +
         '<div class="vr-row"><div class="k">Kalimat yang benar</div><div class="v">"'+escapeHtml(e.correctedSentence || e.sentence)+'"'+speakBtnHtml(e.correctedSentence || e.sentence)+'</div></div>' +
@@ -3309,12 +3777,12 @@
         corrCardsHtml(e.meaning, 'Hasil', 'Tidak ada kesalahan makna - kalimat sudah tepat.') +
         pronCardsHtml(e.pron) +
         '<div class="vr-row" style="margin-top:14px;"><div class="k">Arti kalimat</div><div class="v">'+escapeHtml(e.translation)+'</div></div>' +
-        deleteBtnHtml;
+        sheetActionsHtml;
     } else if(scope === 'baca'){
       var e = BACA[idx];
       eyebrow = 'Riwayat \u00b7 ' + bacaKindInfo(e).label;
       title = fmtDateShort(e.ts) + ' \u00b7 ' + fmtTime(e.ts);
-      html = storyReaderHtml(e) + deleteBtnHtml;
+      html = storyReaderHtml(e) + sheetActionsHtml;
     } else if(scope === 'video-missed'){
       eyebrow = 'Riwayat \u00b7 Video';
       title = 'Tidak ada video';
@@ -3357,16 +3825,23 @@
     var labelMap = {ketik:'tulisan', voice:'voice', video:'video', baca:'cerita'};
     if(!confirm('Hapus riwayat ' + labelMap[scope] + ' ini? Tindakan ini tidak bisa dibatalkan.')) return;
     await idbDelete(scope, e.id);
+    deleteFromCloud(scope, [e.id]);
     arr.splice(idx, 1);
     if(scope === 'ketik') renderKetikLists();
     else if(scope === 'voice') renderVoiceLists();
     else if(scope === 'video'){ renderVideoLists(); renderCalendar(); }
     else if(scope === 'baca') renderBacaLists();
     renderHeader();
+    updateRangeCountPreview();
     closeDetail(false);
   }
-  sheetBody.addEventListener('click', function(e){
+  sheetBody.addEventListener('click', async function(e){
     if(e.target.closest('.sheet-delete-btn')) deleteCurrentDetail();
+    if(e.target.closest('.sheet-download-btn')){
+      var scope = currentDetailScope, idx = currentDetailIdx;
+      var arr = scope === 'ketik' ? KETIK : scope === 'voice' ? VOICE : scope === 'video' ? VIDEO : scope === 'baca' ? BACA : null;
+      if(arr && arr[idx]) await downloadSingleEntryFile(scope, arr[idx]);
+    }
   });
   document.body.addEventListener('click', function(e){
     var item = e.target.closest('[data-scope][data-idx]');
@@ -3402,7 +3877,10 @@
       var tr = (KAMUS_MAP[w].translation || '').trim().toLowerCase();
       if(tr && tr === w){
         await idbDelete('kamus', w);
-        await idbPut('kamusExclude', {word: w, ts: Date.now()});
+        deleteFromCloud('kamus', [w]);
+        var exRec = {word: w, ts: Date.now()};
+        await idbPut('kamusExclude', exRec);
+        scheduleCloudPush('kamusExclude', exRec);
         delete KAMUS_MAP[w];
         KAMUS_EXCLUDE[w] = true;
       }
@@ -3475,12 +3953,15 @@
           if(!w) continue;
           if(items[j].isName){
             KAMUS_EXCLUDE[w] = true;
-            await idbPut('kamusExclude', {word: w, ts: Date.now()});
+            var exRec = {word: w, ts: Date.now()};
+            await idbPut('kamusExclude', exRec);
+            scheduleCloudPush('kamusExclude', exRec);
             continue;
           }
           var rec = {word: w, translation: items[j].translation || '', ts: Date.now()};
           KAMUS_MAP[w] = rec;
           await idbPut('kamus', rec);
+          scheduleCloudPush('kamus', rec);
         }
       }catch(err){
         console.error('gagal menerjemahkan batch kamus:', err.message);
@@ -3803,6 +4284,19 @@
     if(savedTab && validTabs.indexOf(savedTab) !== -1 && savedTab !== 'ringkasan'){
       goTo(savedTab, {silent:true});
     }
+
+    // Inisialisasi rentang tanggal (default 30 hari terakhir sampai hari ini)
+    var todayObj = new Date();
+    var pastObj = new Date(todayObj.getTime() - 30 * 86400000);
+    var dfEl = document.getElementById('rangeDateFrom');
+    var dtEl = document.getElementById('rangeDateTo');
+    if(dfEl && !dfEl.value) dfEl.value = pastObj.toISOString().slice(0,10);
+    if(dtEl && !dtEl.value) dtEl.value = todayObj.toISOString().slice(0,10);
+    updateRangeCountPreview();
+
+    // Tarik & gabungkan data terbaru dari Cloudflare D1 & KV
+    cloudPullAndMerge();
+
     scheduleMidnightRekapRefresh();
   }
   init();
