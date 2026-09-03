@@ -318,20 +318,20 @@
   }
   .cloud-gateway-text {
     min-width: 0;
+    flex: 1;
+    overflow: hidden;
   }
   .cloud-gateway-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--ink);
     letter-spacing: -0.01em;
-  }
-  .cloud-gateway-desc {
-    font-size: 12px;
-    color: var(--ink-soft);
-    margin-top: 2px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .cloud-gateway-desc {
+    display: none;
   }
   .cloud-gateway-right {
     display: flex;
@@ -371,12 +371,12 @@
   }
   .cloud-gateway-time {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10.5px;
     color: var(--ink-faint);
-    margin-top: 3px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* MANAJEMEN RENTANG TANGGAL (Desain Kustom Elegan) */
@@ -1456,9 +1456,9 @@
           </svg>
         </div>
         <div class="cloud-gateway-text">
-          <div class="cloud-gateway-title">Sinkronisasi Cloud & Backup</div>
-          <div class="cloud-gateway-desc" id="gatewaySyncStatusText">Cloudflare D1 & Workers KV aktif</div>
-          <div class="cloud-gateway-time" id="gatewayLastSyncTime">Terakhir sinkron: Belum pernah</div>
+          <div class="cloud-gateway-title">Sinkronisasi Cloud</div>
+          <div class="cloud-gateway-desc" id="gatewaySyncStatusText"></div>
+          <div class="cloud-gateway-time" id="gatewayLastSyncTime">Belum pernah disinkron</div>
         </div>
       </div>
       <div class="cloud-gateway-right">
@@ -2137,7 +2137,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.5.5'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.5.6'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -2326,7 +2326,7 @@
     try{ ts = localStorage.getItem('latih_last_cloud_sync_ts'); }catch(e){}
     var label = formatLastSyncTime(ts);
     var gwTime = document.getElementById('gatewayLastSyncTime');
-    if(gwTime) gwTime.textContent = 'Terakhir sinkron: ' + label;
+    if(gwTime) gwTime.textContent = label === 'Belum pernah' ? 'Belum pernah disinkron' : ('Sync ' + label);
     var clTime = document.getElementById('cloudLastSyncDetail');
     if(clTime) clTime.textContent = 'Terakhir sinkron: ' + label;
   }
