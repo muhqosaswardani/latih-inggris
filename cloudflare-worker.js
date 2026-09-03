@@ -142,22 +142,25 @@ export default {
         }
       }
 
-      if (request.method === 'GET') {
+      if (request.method === 'GET' || request.method === 'HEAD') {
         try {
           const res = await env.KV_MEDIA.getWithMetadata(blobId, 'arrayBuffer');
           if (!res || !res.value) {
             return jsonResponse({ error: 'Blob tidak ditemukan di KV.' }, 404);
           }
           const mime = (res.metadata && res.metadata.mimeType) || 'application/octet-stream';
-          return new Response(res.value, {
-            headers: Object.assign(
-              {
-                'Content-Type': mime,
-                'Cache-Control': 'public, max-age=31536000, immutable'
-              },
-              corsHeaders()
-            )
-          });
+          const headers = Object.assign(
+            {
+              'Content-Type': mime,
+              'Content-Length': String(res.value.byteLength),
+              'Cache-Control': 'public, max-age=31536000, immutable'
+            },
+            corsHeaders()
+          );
+          if (request.method === 'HEAD') {
+            return new Response(null, { headers });
+          }
+          return new Response(res.value, { headers });
         } catch (e) {
           return jsonResponse({ error: 'Gagal mengambil blob dari KV: ' + e.message }, 500);
         }
@@ -254,6 +257,8 @@ export default {
         for (const stmt of DDL_STATEMENTS) {
           await db.prepare(stmt).run();
         }
+        try { await db.prepare('ALTER TABLE voice ADD COLUMN size INTEGER').run(); } catch(e){}
+        try { await db.prepare('ALTER TABLE video ADD COLUMN size INTEGER').run(); } catch(e){}
       } catch (err) {
         console.error('ensureSchema error:', err.message);
       }
@@ -269,6 +274,8 @@ export default {
           const res = await env.DB.prepare(stmt).run();
           results.push(res);
         }
+        try { await env.DB.prepare('ALTER TABLE voice ADD COLUMN size INTEGER').run(); } catch(e){}
+        try { await env.DB.prepare('ALTER TABLE video ADD COLUMN size INTEGER').run(); } catch(e){}
         return jsonResponse({ ok: true, message: 'D1 schema migration berhasil dieksekusi ke database!', count: results.length });
       } catch (e) {
         return jsonResponse({ error: 'Gagal eksekusi migrasi D1: ' + e.message }, 500);
@@ -317,14 +324,14 @@ export default {
           );
         }
 
-        // Voice (tanpa audioBlob mentah, hanya blob_key)
+        // Voice (tanpa audioBlob mentah, hanya blob_key + size)
         const voiceArr = Array.isArray(body.voice) ? body.voice : [];
         for (const item of voiceArr) {
           if (!item || !item.id) continue;
           statements.push(
             env.DB.prepare(
-              `INSERT OR REPLACE INTO voice (id, ts, mimeType, blob_key, sentence, correctedSentence, wordTags, meaning, pron, translation, status, meta)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+              `INSERT OR REPLACE INTO voice (id, ts, mimeType, blob_key, sentence, correctedSentence, wordTags, meaning, pron, translation, status, meta, size)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
             ).bind(
               String(item.id),
               Number(item.ts) || Date.now(),
@@ -337,19 +344,20 @@ export default {
               JSON.stringify(item.pron || []),
               String(item.translation || ''),
               String(item.status || 'ok'),
-              String(item.meta || '')
+              String(item.meta || ''),
+              Number(item.size) || 0
             )
           );
         }
 
-        // Video (tanpa videoBlob mentah, hanya blob_key)
+        // Video (tanpa videoBlob mentah, hanya blob_key + size)
         const videoArr = Array.isArray(body.video) ? body.video : [];
         for (const item of videoArr) {
           if (!item || !item.id) continue;
           statements.push(
             env.DB.prepare(
-              `INSERT OR REPLACE INTO video (id, ts, mimeType, blob_key, thumb, duration, topic, sentence, correctedSentence, wordTags, meaning, pron, translation, status, meta)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+              `INSERT OR REPLACE INTO video (id, ts, mimeType, blob_key, thumb, duration, topic, sentence, correctedSentence, wordTags, meaning, pron, translation, status, meta, size)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
             ).bind(
               String(item.id),
               Number(item.ts) || Date.now(),
@@ -365,7 +373,8 @@ export default {
               JSON.stringify(item.pron || []),
               String(item.translation || ''),
               String(item.status || 'ok'),
-              String(item.meta || '')
+              String(item.meta || ''),
+              Number(item.size) || 0
             )
           );
         }
@@ -567,12 +576,30 @@ export default {
       try {
         let kvCount = 0;
         let kvBytes = 0;
+        let videoBytes = 0;
+        let voiceBytes = 0;
         if (env.KV_MEDIA) {
           const list = await env.KV_MEDIA.list({ limit: 1000 });
           kvCount = (list.keys || []).length;
           for (const k of (list.keys || [])) {
+            let s = 0;
             if (k.metadata && k.metadata.size) {
-              kvBytes += Number(k.metadata.size);
+              s = Number(k.metadata.size);
+            } else {
+              try {
+                const val = await env.KV_MEDIA.get(k.name, 'arrayBuffer');
+                if (val && val.byteLength) {
+                  s = val.byteLength;
+                  const mime = (k.metadata && k.metadata.mimeType) || (k.name.startsWith('vd_') ? 'video/webm' : 'audio/webm');
+                  await env.KV_MEDIA.put(k.name, val, { metadata: { mimeType: mime, size: s, ts: Date.now() } });
+                }
+              } catch (err) {}
+            }
+            kvBytes += s;
+            if (k.name.startsWith('vd_')) {
+              videoBytes += s;
+            } else if (k.name.startsWith('v_')) {
+              voiceBytes += s;
             }
           }
         }
@@ -598,10 +625,13 @@ export default {
           kv: {
             count: kvCount,
             bytes: kvBytes,
+            videoBytes: videoBytes,
+            voiceBytes: voiceBytes,
             limitBytes: 1073741824 // 1 GB (1024 MB) free tier
           },
           d1: {
             counts: d1Counts,
+            totalRows: d1Counts.ketik + d1Counts.voice + d1Counts.video + d1Counts.baca + d1Counts.kamus,
             limitBytes: 5368709120 // 5 GB free tier
           }
         });

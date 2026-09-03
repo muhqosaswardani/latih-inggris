@@ -2470,7 +2470,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.6.4'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.6.5'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -2633,6 +2633,9 @@
     for(var k in entry){
       if(k !== 'audioBlob' && k !== 'videoBlob') copy[k] = entry[k];
     }
+    if(entry.videoBlob && entry.videoBlob.size) copy.size = entry.videoBlob.size;
+    else if(entry.audioBlob && entry.audioBlob.size) copy.size = entry.audioBlob.size;
+    else if(entry.size) copy.size = entry.size;
     if(!copy.blob_key && copy.id) copy.blob_key = copy.id;
     return copy;
   }
@@ -2733,10 +2736,16 @@
           } else {
             var localEntry = localMap[strId];
             localEntry._synced = true;
+            var updatedLocal = false;
             if(!localEntry.blob_key && cItem.blob_key){
               localEntry.blob_key = cItem.blob_key;
-              await idbPut(item.scope, localEntry);
+              updatedLocal = true;
             }
+            if(!localEntry.size && cItem.size){
+              localEntry.size = cItem.size;
+              updatedLocal = true;
+            }
+            if(updatedLocal) await idbPut(item.scope, localEntry);
           }
         }
         sortDesc(item.list);
@@ -3065,38 +3074,59 @@
     var pD1 = document.getElementById('storageCountD1');
 
     var KV_LIMIT = 1073741824; // 1 GB in bytes
-    var totalBytes = 0;
-    var videoBytes = 0;
-    var voiceBytes = 0;
     var videoCount = (typeof VIDEO !== 'undefined' && Array.isArray(VIDEO)) ? VIDEO.length : 0;
     var voiceCount = (typeof VOICE !== 'undefined' && Array.isArray(VOICE)) ? VOICE.length : 0;
+    var videoBytes = 0;
+    var voiceBytes = 0;
 
-    // 1. Hitung ukuran dari memori / blob lokal
+    // 1. Hitung ukuran riil dari data lokal jika sudah ada (tanpa angka perkiraan palsu)
     if(typeof VIDEO !== 'undefined' && Array.isArray(VIDEO)){
       VIDEO.forEach(function(e){
-        if(e.videoBlob && e.videoBlob.size){
-          videoBytes += e.videoBlob.size;
-        } else {
-          // Rata-rata video webm resolusi sedang ~8MB per menit (~10MB rata-rata)
-          videoBytes += 10 * 1024 * 1024;
-        }
+        if(e.videoBlob && e.videoBlob.size) videoBytes += e.videoBlob.size;
+        else if(e.size) videoBytes += Number(e.size);
       });
     }
 
     if(typeof VOICE !== 'undefined' && Array.isArray(VOICE)){
       VOICE.forEach(function(e){
-        if(e.audioBlob && e.audioBlob.size){
-          voiceBytes += e.audioBlob.size;
-        } else {
-          // Rata-rata audio webm suara singkat ~75KB
-          voiceBytes += 75 * 1024;
-        }
+        if(e.audioBlob && e.audioBlob.size) voiceBytes += e.audioBlob.size;
+        else if(e.size) voiceBytes += Number(e.size);
       });
     }
 
-    totalBytes = videoBytes + voiceBytes;
+    var totalBytes = videoBytes + voiceBytes;
 
-    // 2. Jika online, coba sinkronkan data aktual dari Worker /sync/storage
+    function fmtBytes(b){
+      if(b >= 1024 * 1024 * 1024) return (b / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+      if(b >= 1024 * 1024) return (b / (1024 * 1024)).toFixed(1) + ' MB';
+      if(b >= 1024) return (b / 1024).toFixed(0) + ' KB';
+      return (b || 0) + ' B';
+    }
+
+    function renderDisplay(totB, vidB, vceB, d1Count){
+      var pct = Math.min(100, (totB / KV_LIMIT) * 100);
+      var pctDisplay = pct < 0.1 && totB > 0 ? '<0.1%' : pct.toFixed(1) + '%';
+      if(usedText) usedText.textContent = fmtBytes(totB) + ' / 1.00 GB';
+      if(pctText) pctText.textContent = pctDisplay + ' terpakai';
+      if(bar){
+        bar.style.width = Math.max(totB > 0 ? 1.5 : 0, pct) + '%';
+        bar.classList.remove('warn', 'danger');
+        if(pct >= 85) bar.classList.add('danger');
+        else if(pct >= 70) bar.classList.add('warn');
+      }
+      if(badge){
+        badge.className = 'storage-cap-badge ' + (pct >= 85 ? 'danger' : pct >= 70 ? 'warn' : 'ok');
+        badge.textContent = pct >= 85 ? 'Hampir Penuh' : pct >= 70 ? 'Waspada' : 'Aman';
+      }
+      if(pVid) pVid.textContent = videoCount + ' Video' + (vidB > 0 ? ' (' + fmtBytes(vidB) + ')' : '');
+      if(pVoice) pVoice.textContent = voiceCount + ' Audio' + (vceB > 0 ? ' (' + fmtBytes(vceB) + ')' : '');
+      if(pD1 && d1Count !== undefined) pD1.textContent = 'D1: ' + d1Count + ' baris data (5 GB Free)';
+    }
+
+    // Tampilkan data riil sementara
+    renderDisplay(totalBytes, videoBytes, voiceBytes);
+
+    // 2. Tarik data riil langsung dari Cloudflare Worker
     try{
       if(navigator.onLine && PROXY_URL){
         var res = await fetch(PROXY_URL + '/sync/storage', {
@@ -3106,54 +3136,59 @@
         if(res.ok){
           var sData = await res.json();
           if(sData && sData.kv){
-            if(sData.kv.bytes && sData.kv.bytes > 0){
+            if(sData.kv.limitBytes) KV_LIMIT = sData.kv.limitBytes;
+            if(typeof sData.kv.bytes === 'number' && sData.kv.bytes > 0){
               totalBytes = sData.kv.bytes;
-            }
-            if(sData.kv.limitBytes){
-              KV_LIMIT = sData.kv.limitBytes;
+              if(typeof sData.kv.videoBytes === 'number' && sData.kv.videoBytes > 0) videoBytes = sData.kv.videoBytes;
+              if(typeof sData.kv.voiceBytes === 'number' && sData.kv.voiceBytes > 0) voiceBytes = sData.kv.voiceBytes;
             }
           }
-          if(sData && sData.d1 && sData.d1.counts && pD1){
-            var totalD1Rows = (sData.d1.counts.ketik||0) + (sData.d1.counts.voice||0) + (sData.d1.counts.video||0) + (sData.d1.counts.baca||0) + (sData.d1.counts.kamus||0);
-            pD1.textContent = 'D1: ' + totalD1Rows + ' baris data (5 GB Free)';
+          var d1Total = undefined;
+          if(sData && sData.d1){
+            if(typeof sData.d1.totalRows === 'number'){
+              d1Total = sData.d1.totalRows;
+            } else if(sData.d1.counts){
+              var c = sData.d1.counts;
+              d1Total = (c.ketik||0) + (c.voice||0) + (c.video||0) + (c.baca||0) + (c.kamus||0);
+            }
           }
+          renderDisplay(totalBytes, videoBytes, voiceBytes, d1Total);
         }
       }
-    }catch(err){
-      // fallback ke kalkulasi lokal
+    }catch(err){}
+
+    // 3. Jika di desktop ada entri yang belum ada ukurannya, ambil Content-Length dari cloud di background
+    var missingSizeEntries = [];
+    if(typeof VIDEO !== 'undefined' && Array.isArray(VIDEO)){
+      VIDEO.forEach(function(e){
+        if(!e.videoBlob && !e.size && (e.blob_key || e.id)) missingSizeEntries.push({ scope:'video', e: e });
+      });
     }
-
-    // Format tampilan bytes
-    function fmtBytes(b){
-      if(b >= 1024 * 1024 * 1024) return (b / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
-      if(b >= 1024 * 1024) return (b / (1024 * 1024)).toFixed(1) + ' MB';
-      if(b >= 1024) return (b / 1024).toFixed(0) + ' KB';
-      return b + ' B';
+    if(typeof VOICE !== 'undefined' && Array.isArray(VOICE)){
+      VOICE.forEach(function(e){
+        if(!e.audioBlob && !e.size && (e.blob_key || e.id)) missingSizeEntries.push({ scope:'voice', e: e });
+      });
     }
-
-    var pct = Math.min(100, (totalBytes / KV_LIMIT) * 100);
-    var pctDisplay = pct < 0.1 && totalBytes > 0 ? '<0.1%' : pct.toFixed(1) + '%';
-
-    if(usedText) usedText.textContent = fmtBytes(totalBytes) + ' / 1.00 GB';
-    if(pctText) pctText.textContent = pctDisplay + ' terpakai';
-
-    if(bar){
-      bar.style.width = Math.max(1.5, pct) + '%';
-      bar.classList.remove('warn', 'danger');
-      if(pct >= 85){
-        bar.classList.add('danger');
-      } else if(pct >= 70){
-        bar.classList.add('warn');
-      }
+    if(missingSizeEntries.length > 0 && navigator.onLine && PROXY_URL){
+      setTimeout(async function(){
+        var updated = false;
+        for(var i=0; i<missingSizeEntries.length; i++){
+          var m = missingSizeEntries[i];
+          try{
+            var hRes = await fetch(PROXY_URL + '/blob/' + encodeURIComponent(m.e.blob_key || m.e.id), { method: 'HEAD' });
+            var len = hRes.headers.get('Content-Length');
+            if(len && Number(len) > 0){
+              m.e.size = Number(len);
+              await idbPut(m.scope, m.e);
+              updated = true;
+            }
+          }catch(e){}
+        }
+        if(updated){
+          updateStorageIndicator();
+        }
+      }, 500);
     }
-
-    if(badge){
-      badge.className = 'storage-cap-badge ' + (pct >= 85 ? 'danger' : pct >= 70 ? 'warn' : 'ok');
-      badge.textContent = pct >= 85 ? 'Hampir Penuh' : pct >= 70 ? 'Waspada' : 'Aman';
-    }
-
-    if(pVid) pVid.textContent = videoCount + ' Video (' + fmtBytes(videoBytes) + ')';
-    if(pVoice) pVoice.textContent = voiceCount + ' Audio (' + fmtBytes(voiceBytes) + ')';
   }
 
   async function handleRangeDownload(){
@@ -3944,6 +3979,20 @@
     VOICE = sortDesc(await idbAll('voice'));
     VIDEO = sortDesc(await idbAll('video'));
     BACA = sortDesc(await idbAll('baca'));
+
+    // Pastikan ukuran byte riil tersimpan ke e.size agar sinkron antar-perangkat
+    VIDEO.forEach(function(e){
+      if(e.videoBlob && e.videoBlob.size && (!e.size || e.size !== e.videoBlob.size)){
+        e.size = e.videoBlob.size;
+        idbPut('video', e);
+      }
+    });
+    VOICE.forEach(function(e){
+      if(e.audioBlob && e.audioBlob.size && (!e.size || e.size !== e.audioBlob.size)){
+        e.size = e.audioBlob.size;
+        idbPut('voice', e);
+      }
+    });
   }
 
   function dotClass(status){ return status === 'ok' ? 'g' : 'r'; }
@@ -5125,7 +5174,7 @@
         speechSchema(false)
       );
       var entry = {
-        id:'v_'+Date.now(), ts: Date.now(), mimeType: blob.type||'audio/webm', audioBlob: blob,
+        id:'v_'+Date.now(), ts: Date.now(), mimeType: blob.type||'audio/webm', audioBlob: blob, size: blob.size,
         sentence: result.transcript || '', correctedSentence: result.correctedSentence || result.transcript || '',
         wordTags: result.wordTags || [],
         meaning: result.meaning || [], pron: result.pron || [],
@@ -5429,7 +5478,7 @@
         speechSchema(true)
       );
       var entry = {
-        id:'vd_'+Date.now(), ts: Date.now(), mimeType: blob.type||'video/webm', videoBlob: blob, thumb: thumb,
+        id:'vd_'+Date.now(), ts: Date.now(), mimeType: blob.type||'video/webm', videoBlob: blob, size: blob.size, thumb: thumb,
         duration: fmtDur(duration), topic: result.topic || 'Latihan bicara',
         sentence: result.transcript || '', correctedSentence: result.correctedSentence || result.transcript || '',
         wordTags: result.wordTags || [],

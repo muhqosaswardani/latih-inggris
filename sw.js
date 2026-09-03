@@ -2,8 +2,8 @@
 // Tugas: bikin app bisa di-install & tetap kebuka (shell-nya) walau offline.
 // Data/API request (POST ke Worker Gemini) SENGAJA tidak di-cache di sini.
 
-const APP_VERSION = 'v1.6.4';
-const CACHE_NAME = 'latih-shell-v1.6.4';
+const APP_VERSION = 'v1.6.5';
+const CACHE_NAME = 'latih-shell-v1.6.5';
 const APP_SHELL = [
   './',
   './index.html',
