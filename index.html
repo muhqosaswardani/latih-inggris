@@ -246,14 +246,407 @@
   .ycal-cell.out{opacity:0;}
   .ycal-cell.today{box-shadow:0 0 0 1.5px var(--amber) inset;}
 
-  .sync-card{margin-bottom:20px;}
+  .sync-card{
+    margin-bottom:20px;
+    background: var(--paper-alt);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-card);
+  }
   .sync-row{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:8px; flex-wrap:wrap;}
   .sync-info{min-width:0;}
   .sync-status{font-size:13.5px; font-weight:600; color:var(--ink);}
   .sync-filename{font-family:var(--mono); font-size:11.5px; color:var(--ink-faint); margin-top:2px; word-break:break-all;}
   .sync-actions{flex:none; display:flex; gap:8px; flex-wrap:wrap;}
-  .sync-actions .btn{padding:10px 14px; font-size:13px;}
-  .sync-hint{margin:10px 0 0; font-size:12.5px; color:var(--ink-faint); line-height:1.5;}
+  .sync-actions .btn{padding:9px 13px; font-size:12.5px; font-weight:600; border-radius:10px;}
+  .sync-hint{margin:12px 0 0; font-size:12px; color:var(--ink-soft); line-height:1.5; display:flex; gap:7px; align-items:flex-start;}
+
+  /* MANAJEMEN RENTANG TANGGAL (Desain Kustom Elegan) */
+  .range-manage-box{
+    margin-top: 18px;
+    padding: 16px 18px 18px;
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(15,37,34,0.04);
+  }
+  .range-box-head{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .range-title-group{
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .range-box-title{
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .range-box-sub{
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+  .range-count-badge{
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--navy-soft);
+    background: var(--tape-green-dim);
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    border: 1px solid rgba(30,143,90,0.15);
+  }
+
+  .range-controls-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 580px){
+    .range-controls-grid{
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+  }
+
+  .control-field{
+    position: relative;
+  }
+  .control-label{
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+
+  /* Custom Dropdown & Single Date Range Trigger Buttons */
+  .custom-dropdown-btn, .date-range-btn{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 13px;
+    background: var(--paper-alt);
+    border: 1.5px solid var(--line);
+    border-radius: 11px;
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    transition: all .15s ease;
+    user-select: none;
+    min-height: 42px;
+    box-sizing: border-box;
+  }
+  .custom-dropdown-btn:hover, .date-range-btn:hover{
+    background: #FFFFFF;
+    border-color: var(--navy);
+    box-shadow: 0 2px 8px rgba(15,37,34,0.06);
+  }
+  .custom-dropdown-btn.active, .date-range-btn.active{
+    background: #FFFFFF;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
+  }
+  .control-btn-content{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+  .control-btn-content span{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .control-icon{
+    width: 16px;
+    height: 16px;
+    flex: none;
+    color: var(--navy);
+  }
+  .control-chevron{
+    width: 14px;
+    height: 14px;
+    flex: none;
+    color: var(--ink-faint);
+    transition: transform .2s ease;
+  }
+  .custom-dropdown-btn.active .control-chevron, .date-range-btn.active .control-chevron{
+    transform: rotate(180deg);
+  }
+
+  /* Dropdown Menu Popup */
+  .custom-dropdown-menu{
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 10px 28px rgba(15,37,34,0.14);
+    padding: 6px;
+    z-index: 60;
+    display: none;
+    animation: dropFade .15s cubic-bezier(.2,.8,.2,1);
+  }
+  .custom-dropdown-menu.show{
+    display: block;
+  }
+  @keyframes dropFade{
+    from{ opacity:0; transform: translateY(-4px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  .custom-dropdown-item{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 9px 11px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background .12s ease;
+    box-sizing: border-box;
+  }
+  .custom-dropdown-item:hover{
+    background: var(--paper-alt);
+    color: var(--navy);
+  }
+  .custom-dropdown-item.selected{
+    background: var(--tape-green-dim);
+    color: var(--navy-soft);
+    font-weight: 700;
+  }
+  .custom-dropdown-item-left{
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .custom-dropdown-item .check-icon{
+    width: 14px;
+    height: 14px;
+    color: var(--tape-green);
+    display: none;
+    flex: none;
+  }
+  .custom-dropdown-item.selected .check-icon{
+    display: block;
+  }
+
+  /* Date Range Popover */
+  .date-range-popover{
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 320px;
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 12px 36px rgba(15,37,34,0.16);
+    padding: 16px;
+    z-index: 60;
+    display: none;
+    animation: dropFade .15s cubic-bezier(.2,.8,.2,1);
+  }
+  .date-range-popover.show{
+    display: block;
+  }
+  @media (max-width: 580px){
+    .date-range-popover{
+      position: fixed;
+      top: auto;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      width: auto;
+      max-width: none;
+      box-shadow: 0 -8px 36px rgba(0,0,0,0.22);
+      animation: sheetUp .2s cubic-bezier(.2,.8,.2,1);
+    }
+  }
+
+  .popover-close-btn{
+    background: var(--paper-alt);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .popover-close-btn:hover{
+    background: var(--paper-deep);
+    color: var(--ink);
+  }
+
+  .date-presets-row{
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .date-preset-chip{
+    background: var(--paper-alt);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 5px 11px;
+    font-family: var(--serif);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .date-preset-chip:hover{
+    background: var(--paper-deep);
+    color: var(--ink);
+  }
+  .date-preset-chip.active{
+    background: var(--navy);
+    color: #FFFFFF;
+    border-color: var(--navy);
+  }
+
+  .date-custom-inputs{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .date-input-group label{
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .date-input-styled{
+    width: 100%;
+    padding: 8px 9px;
+    border-radius: 8px;
+    border: 1.5px solid var(--line-dark);
+    background: var(--paper);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color .15s, background .15s;
+    box-sizing: border-box;
+  }
+  .date-input-styled:focus{
+    border-color: var(--navy);
+    background: #FFFFFF;
+  }
+
+  .date-popover-foot{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .date-range-days-label{
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    font-family: var(--mono);
+  }
+
+  /* Action Buttons */
+  .range-actions-row{
+    display: flex;
+    gap: 10px;
+  }
+  @media (max-width: 480px){
+    .range-actions-row{
+      flex-direction: column;
+    }
+  }
+  .btn-range-download{
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 16px;
+    border-radius: 10px;
+    border: 1.5px solid var(--navy);
+    background: var(--navy);
+    color: #FFFFFF;
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .btn-range-download:hover{
+    background: var(--navy-soft);
+    border-color: var(--navy-soft);
+  }
+  .btn-range-download:active{
+    transform: scale(0.98);
+  }
+
+  .btn-range-delete{
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--rec-red-dim);
+    background: var(--rec-red-dim);
+    color: var(--rec-red);
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .btn-range-delete:hover{
+    background: var(--rec-red);
+    color: #FFFFFF;
+  }
+  .btn-range-delete:active{
+    transform: scale(0.98);
+  }
 
   .quick-grid{display:grid; grid-template-columns:1fr; gap:12px;}
   @media (min-width:560px){ .quick-grid{grid-template-columns:1fr 1fr;} }
@@ -830,7 +1223,7 @@
       <button id="installBtn" class="mark-btn" type="button" aria-label="Instal App">
         <span class="mark">LATIH</span>
       </button>
-      <span class="ver-tag" id="verTag">v1.0.0</span>
+      <span class="ver-tag" id="verTag">v1.5.1</span>
       <span class="sub">log praktik harian</span>
     </div>
     <div class="streak-widget">
@@ -961,41 +1354,129 @@
       </div>
 
       <!-- MANAJEMEN RENTANG TANGGAL -->
-      <div class="range-manage-box" style="margin-top:16px; padding-top:14px; border-top:1px dashed var(--line);">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
-          <span class="eyebrow" style="color:var(--ink);">Riwayat & Media Berbasis Rentang Tanggal</span>
-          <span style="font-size:11.5px; font-weight:600; color:var(--ink-soft);" id="rangeCountSummary">0 entri terpilih</span>
+      <div class="range-manage-box">
+        <div class="range-box-head">
+          <div class="range-title-group">
+            <span class="range-box-title">Riwayat & Media Berbasis Rentang Tanggal</span>
+            <span class="range-box-sub">Unduh file rekaman murni atau bersihkan riwayat massal</span>
+          </div>
+          <span class="range-count-badge" id="rangeCountSummary">0 entri terpilih</span>
         </div>
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-bottom:12px;">
-          <div>
-            <label for="rangeScopeSelect" style="display:block; font-size:11px; font-weight:600; color:var(--ink-soft); margin-bottom:4px;">Kategori</label>
-            <select id="rangeScopeSelect" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--line-dark); background:#fff; font-family:inherit; font-size:13px; color:var(--ink);">
-              <option value="all">Semua Kategori</option>
-              <option value="ketik">Ketik (Tulisan)</option>
-              <option value="voice">Voice (Audio)</option>
-              <option value="video">Video (Rekaman)</option>
-              <option value="baca">Baca (Cerita)</option>
-            </select>
+
+        <div class="range-controls-grid">
+          <!-- KATEGORI: CUSTOM DROPDOWN -->
+          <div class="control-field" id="categoryDropdownWrap">
+            <label class="control-label">Kategori</label>
+            <button type="button" class="custom-dropdown-btn" id="customCategoryBtn" aria-haspopup="listbox" aria-expanded="false">
+              <div class="control-btn-content">
+                <span class="control-icon" id="selectedCategoryIcon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                </span>
+                <span id="selectedCategoryLabel">Semua Kategori</span>
+              </div>
+              <svg class="control-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="custom-dropdown-menu" id="customCategoryMenu" role="listbox">
+              <button type="button" class="custom-dropdown-item selected" data-value="all" role="option">
+                <div class="custom-dropdown-item-left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px; height:15px; color:var(--navy);"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                  <span>Semua Kategori</span>
+                </div>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              </button>
+              <button type="button" class="custom-dropdown-item" data-value="ketik" role="option">
+                <div class="custom-dropdown-item-left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px; height:15px; color:var(--navy);"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4z"/></svg>
+                  <span>Ketik (Tulisan)</span>
+                </div>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              </button>
+              <button type="button" class="custom-dropdown-item" data-value="voice" role="option">
+                <div class="custom-dropdown-item-left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px; height:15px; color:var(--navy);"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+                  <span>Voice (Audio)</span>
+                </div>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              </button>
+              <button type="button" class="custom-dropdown-item" data-value="video" role="option">
+                <div class="custom-dropdown-item-left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px; height:15px; color:var(--navy);"><rect x="3" y="6" width="13" height="12" rx="1.5"/><path d="M16 10l5-3v10l-5-3"/></svg>
+                  <span>Video (Rekaman)</span>
+                </div>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              </button>
+              <button type="button" class="custom-dropdown-item" data-value="baca" role="option">
+                <div class="custom-dropdown-item-left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px; height:15px; color:var(--navy);"><path d="M2 5.5C4 4.2 7 3.5 9 4.2c1.3.4 2.4 1.2 3 2.1V19c-.6-.9-1.7-1.7-3-2.1-2-.7-5 0-7 1.3V5.5z"/><path d="M22 5.5c-2-1.3-5-2-7-1.3-1.3.4-2.4 1.2-3 2.1V19c.6-.9 1.7-1.7 3-2.1 2-.7 5 0 7 1.3V5.5z"/></svg>
+                  <span>Baca (Cerita)</span>
+                </div>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              </button>
+            </div>
+            <input type="hidden" id="rangeScopeSelect" value="all">
           </div>
-          <div>
-            <label for="rangeDateFrom" style="display:block; font-size:11px; font-weight:600; color:var(--ink-soft); margin-bottom:4px;">Dari Tanggal</label>
-            <input type="date" id="rangeDateFrom" style="width:100%; padding:7px 10px; border-radius:8px; border:1px solid var(--line-dark); background:#fff; font-family:inherit; font-size:13px; color:var(--ink);">
-          </div>
-          <div>
-            <label for="rangeDateTo" style="display:block; font-size:11px; font-weight:600; color:var(--ink-soft); margin-bottom:4px;">Sampai Tanggal</label>
-            <input type="date" id="rangeDateTo" style="width:100%; padding:7px 10px; border-radius:8px; border:1px solid var(--line-dark); background:#fff; font-family:inherit; font-size:13px; color:var(--ink);">
+
+          <!-- RENTANG TANGGAL: SINGLE BUTTON TRIGGER -->
+          <div class="control-field" id="dateRangeWrap">
+            <label class="control-label">Rentang Waktu</label>
+            <button type="button" class="date-range-btn" id="customDateRangeBtn" aria-haspopup="dialog" aria-expanded="false">
+              <div class="control-btn-content">
+                <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <span id="dateRangeSummaryLabel">30 Hari Terakhir</span>
+              </div>
+              <svg class="control-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+
+            <!-- Date Range Popover / Picker Modal -->
+            <div class="date-range-popover" id="dateRangePopover">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <span style="font-family:var(--mono); font-size:12.5px; font-weight:700; color:var(--ink);">Pilih Rentang Waktu</span>
+                <button type="button" class="popover-close-btn" id="dateRangeCloseBtn" aria-label="Tutup">&times;</button>
+              </div>
+
+              <!-- Presets -->
+              <div class="date-presets-row">
+                <button type="button" class="date-preset-chip" data-preset="7d">7 Hari</button>
+                <button type="button" class="date-preset-chip active" data-preset="30d">30 Hari</button>
+                <button type="button" class="date-preset-chip" data-preset="month">Bulan Ini</button>
+                <button type="button" class="date-preset-chip" data-preset="all">Semua Waktu</button>
+              </div>
+
+              <!-- Mulai dari & Sampai dengan ("mulaii dari sampe brp") -->
+              <div class="date-custom-inputs">
+                <div class="date-input-group">
+                  <label for="rangeDateFrom">Mulai dari</label>
+                  <input type="date" id="rangeDateFrom" class="date-input-styled">
+                </div>
+                <div class="date-input-group">
+                  <label for="rangeDateTo">Sampai dengan</label>
+                  <input type="date" id="rangeDateTo" class="date-input-styled">
+                </div>
+              </div>
+
+              <div class="date-popover-foot">
+                <span class="date-range-days-label" id="dateRangeDaysCount">30 hari terpilih</span>
+                <button type="button" class="btn btn-primary" id="btnApplyDateRange" style="padding:7px 15px; font-size:12.5px; border-radius:8px;">Terapkan</button>
+              </div>
+            </div>
           </div>
         </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn btn-ghost" id="btnDownloadRange" style="flex:1; min-width:140px; font-size:13px; font-weight:600;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; margin-right:4px; vertical-align:-2px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Unduh File Media
+
+        <div class="range-actions-row">
+          <button type="button" class="btn-range-download" id="btnDownloadRange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px; height:15px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            <span>Unduh File Media</span>
           </button>
-          <button class="btn btn-ghost" id="btnDeleteRange" style="flex:1; min-width:140px; font-size:13px; font-weight:600; color:var(--rec-red); border-color:var(--rec-red-dim); background:var(--rec-red-dim);">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; margin-right:4px; vertical-align:-2px;"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/></svg>Hapus Riwayat Rentang
+          <button type="button" class="btn-range-delete" id="btnDeleteRange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px; height:15px;"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/></svg>
+            <span>Hapus Riwayat Rentang</span>
           </button>
         </div>
       </div>
-      <p class="sync-hint" style="margin-top:12px;">Hapus riwayat rentang tanggal membersihkan data di IndexedDB lokal dan Cloudflare D1, serta menghapus rekaman di Workers KV agar kuota tetap lega.</p>
+      <p class="sync-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; flex:none; margin-top:2px; color:var(--ink-faint);"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <span>Hapus riwayat rentang tanggal membersihkan data di IndexedDB lokal dan Cloudflare D1, serta menghapus file rekaman di Workers KV agar kuota cloud tetap lega.</span>
+      </p>
     </div>
 
     <div class="panel-head">
@@ -1493,7 +1974,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.5.0'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.5.1'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -2080,16 +2561,239 @@
     }
   }
 
+  // ==================================================================
+  // CUSTOM CONTROLS: DROPDOWN & SINGLE DATE RANGE PICKER
+  // ==================================================================
+  var activeDatePreset = '30d';
+
+  function initCustomControls(){
+    var catBtn = document.getElementById('customCategoryBtn');
+    var catMenu = document.getElementById('customCategoryMenu');
+    var hiddenScope = document.getElementById('rangeScopeSelect');
+    var selectedLabel = document.getElementById('selectedCategoryLabel');
+    var selectedIcon = document.getElementById('selectedCategoryIcon');
+
+    var dateBtn = document.getElementById('customDateRangeBtn');
+    var datePopover = document.getElementById('dateRangePopover');
+    var dateClose = document.getElementById('dateRangeCloseBtn');
+    var btnApply = document.getElementById('btnApplyDateRange');
+    var dFrom = document.getElementById('rangeDateFrom');
+    var dTo = document.getElementById('rangeDateTo');
+
+    // 1. Kategori Dropdown Toggle & Selection
+    if(catBtn && catMenu){
+      catBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var isOpen = catMenu.classList.contains('show');
+        closeAllCustomPopups();
+        if(!isOpen){
+          catMenu.classList.add('show');
+          catBtn.classList.add('active');
+          catBtn.setAttribute('aria-expanded', 'true');
+        }
+      });
+
+      var items = catMenu.querySelectorAll('.custom-dropdown-item');
+      for(var i=0; i<items.length; i++){
+        (function(item){
+          item.addEventListener('click', function(e){
+            e.stopPropagation();
+            var val = item.getAttribute('data-value');
+            if(hiddenScope) hiddenScope.value = val;
+
+            for(var j=0; j<items.length; j++){ items[j].classList.remove('selected'); }
+            item.classList.add('selected');
+
+            var leftContent = item.querySelector('.custom-dropdown-item-left');
+            if(leftContent){
+              var iconSvg = leftContent.querySelector('svg');
+              var textSpan = leftContent.querySelector('span');
+              if(selectedIcon && iconSvg) selectedIcon.innerHTML = iconSvg.outerHTML;
+              if(selectedLabel && textSpan) selectedLabel.textContent = textSpan.textContent;
+            }
+
+            catMenu.classList.remove('show');
+            catBtn.classList.remove('active');
+            catBtn.setAttribute('aria-expanded', 'false');
+            updateRangeCountPreview();
+          });
+        })(items[i]);
+      }
+    }
+
+    // 2. Date Range Popover Toggle & Presets
+    if(dateBtn && datePopover){
+      dateBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var isOpen = datePopover.classList.contains('show');
+        closeAllCustomPopups();
+        if(!isOpen){
+          datePopover.classList.add('show');
+          dateBtn.classList.add('active');
+          dateBtn.setAttribute('aria-expanded', 'true');
+          updateDateRangeDaysLabel();
+        }
+      });
+
+      if(dateClose){
+        dateClose.addEventListener('click', function(e){
+          e.stopPropagation();
+          closeAllCustomPopups();
+        });
+      }
+
+      var chips = datePopover.querySelectorAll('.date-preset-chip');
+      for(var c=0; c<chips.length; c++){
+        (function(chip){
+          chip.addEventListener('click', function(e){
+            e.stopPropagation();
+            applyDatePreset(chip.getAttribute('data-preset'));
+          });
+        })(chips[c]);
+      }
+
+      if(dFrom){
+        dFrom.addEventListener('input', function(){
+          activeDatePreset = 'custom';
+          updatePresetChipUi();
+          updateDateRangeDaysLabel();
+        });
+      }
+      if(dTo){
+        dTo.addEventListener('input', function(){
+          activeDatePreset = 'custom';
+          updatePresetChipUi();
+          updateDateRangeDaysLabel();
+        });
+      }
+
+      if(btnApply){
+        btnApply.addEventListener('click', function(e){
+          e.stopPropagation();
+          closeAllCustomPopups();
+          updateDateRangeSummaryDisplay();
+          updateRangeCountPreview();
+        });
+      }
+    }
+
+    // Klik di luar area popup untuk menutup
+    document.addEventListener('click', function(e){
+      if(!e.target.closest('#categoryDropdownWrap') && !e.target.closest('#dateRangeWrap')){
+        closeAllCustomPopups();
+      }
+    });
+
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape') closeAllCustomPopups();
+    });
+  }
+
+  function closeAllCustomPopups(){
+    var catMenu = document.getElementById('customCategoryMenu');
+    var catBtn = document.getElementById('customCategoryBtn');
+    var datePopover = document.getElementById('dateRangePopover');
+    var dateBtn = document.getElementById('customDateRangeBtn');
+    if(catMenu) catMenu.classList.remove('show');
+    if(catBtn){ catBtn.classList.remove('active'); catBtn.setAttribute('aria-expanded', 'false'); }
+    if(datePopover) datePopover.classList.remove('show');
+    if(dateBtn){ dateBtn.classList.remove('active'); dateBtn.setAttribute('aria-expanded', 'false'); }
+  }
+
+  function applyDatePreset(preset){
+    activeDatePreset = preset;
+    var today = new Date();
+    var dFrom = document.getElementById('rangeDateFrom');
+    var dTo = document.getElementById('rangeDateTo');
+    if(!dFrom || !dTo) return;
+
+    if(preset === '7d'){
+      var past7 = new Date(today.getTime() - 6 * 86400000);
+      dFrom.value = past7.toISOString().slice(0,10);
+      dTo.value = today.toISOString().slice(0,10);
+    } else if(preset === '30d'){
+      var past30 = new Date(today.getTime() - 29 * 86400000);
+      dFrom.value = past30.toISOString().slice(0,10);
+      dTo.value = today.toISOString().slice(0,10);
+    } else if(preset === 'month'){
+      var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+      dFrom.value = firstDay.toISOString().slice(0,10);
+      dTo.value = today.toISOString().slice(0,10);
+    } else if(preset === 'all'){
+      dFrom.value = '';
+      dTo.value = today.toISOString().slice(0,10);
+    }
+
+    updatePresetChipUi();
+    updateDateRangeDaysLabel();
+    updateDateRangeSummaryDisplay();
+    updateRangeCountPreview();
+  }
+
+  function updatePresetChipUi(){
+    var chips = document.querySelectorAll('.date-preset-chip');
+    chips.forEach(function(c){
+      if(c.getAttribute('data-preset') === activeDatePreset) c.classList.add('active');
+      else c.classList.remove('active');
+    });
+  }
+
+  function updateDateRangeDaysLabel(){
+    var dFrom = document.getElementById('rangeDateFrom');
+    var dTo = document.getElementById('rangeDateTo');
+    var daysCountLabel = document.getElementById('dateRangeDaysCount');
+    if(!daysCountLabel || !dFrom || !dTo) return;
+
+    if(!dFrom.value && !dTo.value){
+      daysCountLabel.textContent = 'Semua waktu terpilih';
+      return;
+    }
+    if(!dFrom.value){
+      daysCountLabel.textContent = 'Hingga ' + dTo.value;
+      return;
+    }
+    if(!dTo.value){
+      daysCountLabel.textContent = 'Sejak ' + dFrom.value;
+      return;
+    }
+    var t1 = new Date(dFrom.value + 'T00:00:00').getTime();
+    var t2 = new Date(dTo.value + 'T00:00:00').getTime();
+    var count = Math.round((t2 - t1) / 86400000) + 1;
+    if(count <= 0) daysCountLabel.textContent = 'Rentang tidak valid';
+    else daysCountLabel.textContent = count + ' hari terpilih';
+  }
+
+  function updateDateRangeSummaryDisplay(){
+    var dFrom = document.getElementById('rangeDateFrom');
+    var dTo = document.getElementById('rangeDateTo');
+    var summaryLabel = document.getElementById('dateRangeSummaryLabel');
+    if(!summaryLabel || !dFrom || !dTo) return;
+
+    if(activeDatePreset === '7d'){ summaryLabel.textContent = '7 Hari Terakhir'; return; }
+    if(activeDatePreset === '30d'){ summaryLabel.textContent = '30 Hari Terakhir'; return; }
+    if(activeDatePreset === 'month'){ summaryLabel.textContent = 'Bulan Ini'; return; }
+    if(activeDatePreset === 'all'){ summaryLabel.textContent = 'Semua Waktu'; return; }
+
+    if(dFrom.value && dTo.value){
+      var f = new Date(dFrom.value + 'T00:00:00');
+      var t = new Date(dTo.value + 'T00:00:00');
+      if(dFrom.value === dTo.value){
+        summaryLabel.textContent = f.getDate() + ' ' + MON_SHORT[f.getMonth()] + ' ' + f.getFullYear();
+      } else {
+        summaryLabel.textContent = f.getDate() + ' ' + MON_SHORT[f.getMonth()] + ' – ' + t.getDate() + ' ' + MON_SHORT[t.getMonth()] + ' ' + t.getFullYear();
+      }
+    } else if(dFrom.value){
+      summaryLabel.textContent = 'Sejak ' + dFrom.value;
+    } else if(dTo.value){
+      summaryLabel.textContent = 'Hingga ' + dTo.value;
+    } else {
+      summaryLabel.textContent = 'Pilih Rentang';
+    }
+  }
+
   // Event Listeners Sync, Range, dan Backup
   var btnSyncNow = document.getElementById('btnSyncNow');
   if(btnSyncNow) btnSyncNow.addEventListener('click', function(){ cloudPullAndMerge(); flushCloudPush(); });
-
-  var scopeSel = document.getElementById('rangeScopeSelect');
-  var dFrom = document.getElementById('rangeDateFrom');
-  var dTo = document.getElementById('rangeDateTo');
-  if(scopeSel) scopeSel.addEventListener('change', updateRangeCountPreview);
-  if(dFrom) dFrom.addEventListener('change', updateRangeCountPreview);
-  if(dTo) dTo.addEventListener('change', updateRangeCountPreview);
 
   var btnDownRange = document.getElementById('btnDownloadRange');
   if(btnDownRange) btnDownRange.addEventListener('click', handleRangeDownload);
@@ -4285,14 +4989,9 @@
       goTo(savedTab, {silent:true});
     }
 
-    // Inisialisasi rentang tanggal (default 30 hari terakhir sampai hari ini)
-    var todayObj = new Date();
-    var pastObj = new Date(todayObj.getTime() - 30 * 86400000);
-    var dfEl = document.getElementById('rangeDateFrom');
-    var dtEl = document.getElementById('rangeDateTo');
-    if(dfEl && !dfEl.value) dfEl.value = pastObj.toISOString().slice(0,10);
-    if(dtEl && !dtEl.value) dtEl.value = todayObj.toISOString().slice(0,10);
-    updateRangeCountPreview();
+    // Inisialisasi kontrol kustom (dropdown kategori & single-button date range picker)
+    initCustomControls();
+    applyDatePreset('30d');
 
     // Tarik & gabungkan data terbaru dari Cloudflare D1 & KV
     cloudPullAndMerge();
