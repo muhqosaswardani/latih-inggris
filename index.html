@@ -663,6 +663,31 @@
       flex-direction: column;
     }
   }
+  .btn-range-preview{
+    font-family: var(--serif);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--navy);
+    background: #FFFFFF;
+    border: 1px solid var(--navy);
+    padding: 3.5px 11px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all .15s ease;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .btn-range-preview:hover{
+    background: var(--tape-green-dim);
+    box-shadow: 0 1px 4px rgba(15,118,110,0.12);
+  }
+  .btn-range-preview:active{
+    transform: scale(0.96);
+  }
+
   .btn-range-download{
     flex: 1;
     display: inline-flex;
@@ -670,12 +695,12 @@
     justify-content: center;
     gap: 6px;
     padding: 11px 16px;
-    border-radius: 10px;
+    border-radius: 11px;
     border: 1.5px solid var(--navy);
     background: var(--navy);
     color: #FFFFFF;
     font-family: var(--serif);
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 700;
     cursor: pointer;
     transition: all .15s ease;
@@ -695,12 +720,12 @@
     justify-content: center;
     gap: 6px;
     padding: 11px 16px;
-    border-radius: 10px;
+    border-radius: 11px;
     border: 1px solid var(--rec-red-dim);
     background: var(--rec-red-dim);
     color: var(--rec-red);
     font-family: var(--serif);
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 700;
     cursor: pointer;
     transition: all .15s ease;
@@ -711,6 +736,117 @@
   }
   .btn-range-delete:active{
     transform: scale(0.98);
+  }
+
+  /* PREVIEW RANGE MODAL STYLES */
+  .prev-tab-btn{
+    padding: 6px 13px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #FFFFFF;
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--serif);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .prev-tab-btn:hover{
+    border-color: var(--navy);
+    color: var(--ink);
+  }
+  .prev-tab-btn.active{
+    background: var(--navy);
+    color: #FFFFFF;
+    border-color: var(--navy);
+  }
+  .preview-entry-card{
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 11px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .preview-entry-card:hover{
+    border-color: var(--navy);
+    box-shadow: 0 2px 8px rgba(15,37,34,0.06);
+  }
+  .preview-entry-left{
+    min-width: 0;
+    flex: 1;
+  }
+  .preview-entry-meta{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 3px;
+    flex-wrap: wrap;
+  }
+  .preview-badge{
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-family: var(--mono);
+    padding: 2px 7px;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+  }
+  .preview-badge.ketik{ background: var(--paper-deep); color: var(--ink); }
+  .preview-badge.voice{ background: var(--amber-dim); color: var(--amber); }
+  .preview-badge.video{ background: var(--tape-green-dim); color: var(--navy); }
+  .preview-badge.baca{ background: var(--info-dim); color: var(--info); }
+  .preview-entry-time{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+  .preview-entry-title{
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.35;
+  }
+  .preview-entry-sub{
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .preview-entry-btn-dl{
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--paper-alt);
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .preview-entry-btn-dl:hover{
+    background: var(--navy);
+    color: #FFFFFF;
+    border-color: var(--navy);
+  }
+  .preview-entry-btn-dl svg{
+    width: 15px;
+    height: 15px;
   }
 
   .quick-grid{display:grid; grid-template-columns:1fr; gap:12px;}
@@ -1439,41 +1575,41 @@
     </div>
   </section>
   <!-- ================= SINKRONISASI CLOUD & BACKUP (HALAMAN KHUSUS) ================= -->
-  <section class="panel" id="panel-cloud">
+  <section class="panel" id="panel-cloud" style="padding-top:20px;">
     <!-- Header ringkas -->
-    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-      <button type="button" class="btn btn-ghost" id="btnBackFromCloud" style="padding:7px 13px; font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:6px; border-radius:10px;">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px; padding-bottom:16px; border-bottom:1px solid var(--line);">
+      <button type="button" class="btn btn-ghost" id="btnBackFromCloud" style="padding:8px 15px; font-size:13.5px; font-weight:700; display:inline-flex; align-items:center; gap:6px; border-radius:10px; flex:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:16px; height:16px;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         Beranda
       </button>
-      <span style="font-size:15px; font-weight:700; color:var(--ink); letter-spacing:-0.01em;">Sinkronisasi Cloud</span>
+      <span style="font-size:16px; font-weight:700; color:var(--ink); letter-spacing:-0.02em;">Sinkronisasi Cloud</span>
     </div>
 
     <!-- STATUS BARIS -->
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-      <span id="cloudSyncBadge" style="display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; font-family:var(--mono); color:var(--tape-green);">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px;">
+      <span id="cloudSyncBadge" style="display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:700; font-family:var(--mono); color:var(--tape-green);">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--tape-green);"></span>
         <span id="cloudSyncBadgeText">Cloud Siap</span>
       </span>
     </div>
-    <div style="font-size:12px; color:var(--ink-soft); margin-bottom:4px;" id="exportStatusText">Sinkronisasi otomatis aktif</div>
-    <div style="font-size:11.5px; color:var(--ink-faint); font-family:var(--mono); margin-bottom:20px;" id="cloudLastSyncDetail">Terakhir sinkron: Belum pernah</div>
-    <div style="font-size:11.5px; color:var(--ink-faint); font-family:var(--mono); margin-bottom:20px; display:none;" id="exportFileInfo"></div>
+    <div style="font-size:13px; color:var(--ink-soft); margin-bottom:3px;" id="exportStatusText">Sinkronisasi otomatis aktif</div>
+    <div style="font-size:12px; color:var(--ink-faint); font-family:var(--mono); margin-bottom:22px;" id="cloudLastSyncDetail">Terakhir sinkron: Belum pernah</div>
+    <div style="font-size:12px; color:var(--ink-faint); font-family:var(--mono); margin-bottom:22px; display:none;" id="exportFileInfo"></div>
 
     <!-- TOMBOL SYNC -->
-    <button class="btn btn-ghost" id="btnSyncNow" style="width:100%; margin-bottom:10px;" title="Sinkronkan data dua arah sekarang">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px; height:15px; margin-right:6px; vertical-align:-2px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg>
+    <button class="btn btn-ghost" id="btnSyncNow" style="width:100%; margin-bottom:10px; font-size:13.5px; font-weight:700; padding:11px 16px; border-radius:11px;" title="Sinkronkan data dua arah sekarang">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px; height:15px; margin-right:7px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg>
       Sync Cloud Sekarang
     </button>
 
     <!-- IMPORT / EXPORT JSON -->
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:28px;">
-      <button class="btn btn-ghost" id="btnImportData">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px; height:13px; margin-right:4px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      <button class="btn btn-ghost" id="btnImportData" style="font-size:13.5px; font-weight:700; padding:11px 12px; border-radius:11px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; margin-right:6px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
         Import JSON
       </button>
-      <button class="btn btn-primary" id="btnExportData">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px; height:13px; margin-right:4px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+      <button class="btn btn-primary" id="btnExportData" style="font-size:13.5px; font-weight:700; padding:11px 12px; border-radius:11px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; margin-right:6px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
         Export JSON
       </button>
     </div>
@@ -1483,10 +1619,16 @@
     <div style="height:1px; background:var(--line); margin-bottom:22px;"></div>
 
     <!-- MANAJEMEN RENTANG TANGGAL -->
-    <div style="margin-bottom:10px;">
+    <div style="margin-bottom:12px;">
       <div style="font-size:14px; font-weight:700; color:var(--ink); margin-bottom:2px;">Riwayat &amp; Media</div>
-      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:12px;">Unduh atau hapus rekaman berdasarkan filter</div>
-      <span class="range-count-badge" id="rangeCountSummary" style="margin-bottom:16px; display:inline-block;">0 entri terpilih</span>
+      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:10px;">Unduh atau hapus rekaman berdasarkan filter</div>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+        <span class="range-count-badge" id="rangeCountSummary">0 entri terpilih</span>
+        <button type="button" class="btn-range-preview" id="btnPreviewRange" title="Lihat pratinjau daftar file yang terseleksi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:13px; height:13px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview File
+        </button>
+      </div>
     </div>
 
     <div class="range-controls-grid" style="margin-bottom:14px;">
@@ -2041,6 +2183,53 @@
   </div>
 </div>
 
+<!-- ================= PREVIEW RANGE MODAL (Pratinjau File Terseleksi) ================= -->
+<div class="overlay" id="previewRangeModalOverlay" style="z-index:120;">
+  <div class="sheet" style="max-width:620px; max-height:86vh; display:flex; flex-direction:column; border-radius:20px; overflow:hidden;">
+    <div class="sheet-head" style="position:sticky; top:0; z-index:5; background:var(--paper); padding:16px 20px;">
+      <div>
+        <span class="eyebrow">Pratinjau File &amp; Riwayat</span>
+        <h3 id="previewModalTitle">Daftar Entri (0)</h3>
+      </div>
+      <button class="sheet-close" id="previewModalClose" aria-label="Tutup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    
+    <!-- CATEGORY TABS (Tampil dinamis jika kategori dipilih 'Semua' / > 1 kategori) -->
+    <div id="previewCategoryTabs" style="padding:10px 18px; border-bottom:1px solid var(--line); display:flex; gap:6px; overflow-x:auto; background:var(--paper-alt); flex:none; -webkit-overflow-scrolling:touch;">
+    </div>
+
+    <!-- FILE LIST -->
+    <div id="previewModalList" style="flex:1; overflow-y:auto; padding:14px 18px; display:flex; flex-direction:column; gap:10px; -webkit-overflow-scrolling:touch;">
+    </div>
+
+    <!-- FOOTER ACTIONS -->
+    <div style="padding:14px 18px; border-top:1px solid var(--line); background:var(--paper); display:flex; gap:10px; align-items:center; flex:none;">
+      <button type="button" class="btn btn-ghost" id="previewModalBtnCancel" style="flex:1; justify-content:center; padding:11px 14px; font-size:13.5px; font-weight:700; border-radius:11px;">Tutup</button>
+      <button type="button" class="btn btn-primary" id="previewModalBtnDownloadAll" style="flex:1.6; justify-content:center; padding:11px 14px; font-size:13.5px; font-weight:700; border-radius:11px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; margin-right:6px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span>Unduh Semua</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CUSTOM IN-APP CONFIRM & ALERT MODAL ================= -->
+<div class="overlay" id="confirmModalOverlay" style="z-index:150;">
+  <div class="sheet" style="max-width:440px; border-radius:20px; text-align:center; padding:26px 22px 22px; margin:auto; box-shadow: 0 16px 48px rgba(0,0,0,0.28);">
+    <div id="confirmModalIcon" style="width:52px; height:52px; border-radius:50%; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; background:var(--tape-green-dim); color:var(--navy);">
+    </div>
+    <span class="eyebrow" id="confirmModalEyebrow" style="display:block; margin-bottom:6px;">KONFIRMASI</span>
+    <h3 id="confirmModalTitle" style="font-size:17.5px; margin-bottom:10px; color:var(--ink);">Judul Dialog</h3>
+    <div id="confirmModalMessage" style="font-size:13.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:22px;">Deskripsi dialog</div>
+    <div id="confirmModalActions" style="display:flex; gap:10px;">
+      <button type="button" class="btn btn-ghost" id="btnConfirmCancel" style="flex:1; justify-content:center; padding:11px 16px; font-size:13.5px; font-weight:700; border-radius:12px;">Batal</button>
+      <button type="button" class="btn btn-primary" id="btnConfirmOk" style="flex:1.2; justify-content:center; padding:11px 16px; font-size:13.5px; font-weight:700; border-radius:12px;">Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   // ==================================================================
@@ -2092,7 +2281,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.5.7'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.5.8'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -2498,6 +2687,85 @@
   }
 
   // ==================================================================
+  // FORMAT TANGGAL FILE & CUSTOM IN-APP MODAL (Confirm & Alert)
+  // ==================================================================
+  function fmtFileDatePrefix(ts){
+    var d = new Date(ts || Date.now());
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    var hh = String(d.getHours()).padStart(2, '0');
+    var mm = String(d.getMinutes()).padStart(2, '0');
+    var ss = String(d.getSeconds()).padStart(2, '0');
+    return y + '-' + m + '-' + day + '_' + hh + '-' + mm + '-' + ss;
+  }
+
+  function customConfirm(options){
+    return new Promise(function(resolve){
+      var overlay = document.getElementById('confirmModalOverlay');
+      var iconEl = document.getElementById('confirmModalIcon');
+      var eyebrowEl = document.getElementById('confirmModalEyebrow');
+      var titleEl = document.getElementById('confirmModalTitle');
+      var msgEl = document.getElementById('confirmModalMessage');
+      var btnCancel = document.getElementById('btnConfirmCancel');
+      var btnOk = document.getElementById('btnConfirmOk');
+
+      eyebrowEl.textContent = options.eyebrow || 'KONFIRMASI';
+      titleEl.textContent = options.title || 'Apakah Anda yakin?';
+      if(options.htmlMessage){
+        msgEl.innerHTML = options.htmlMessage;
+      } else {
+        msgEl.textContent = options.message || '';
+      }
+      btnCancel.textContent = options.cancelText || 'Batal';
+      btnCancel.style.display = options.hideCancel ? 'none' : '';
+      btnOk.textContent = options.confirmText || 'Lanjutkan';
+
+      if(options.isDanger){
+        iconEl.style.background = 'var(--rec-red-dim)';
+        iconEl.style.color = 'var(--rec-red)';
+        iconEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:26px; height:26px;"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/></svg>';
+        btnOk.className = 'btn btn-primary';
+        btnOk.style.background = 'var(--rec-red)';
+        btnOk.style.borderColor = 'var(--rec-red)';
+      } else {
+        iconEl.style.background = 'var(--tape-green-dim)';
+        iconEl.style.color = 'var(--navy)';
+        iconEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:26px; height:26px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>';
+        btnOk.className = 'btn btn-primary';
+        btnOk.style.background = 'var(--navy)';
+        btnOk.style.borderColor = 'var(--navy)';
+      }
+
+      overlay.classList.add('show');
+      document.body.style.overflow = 'hidden';
+
+      function cleanup(val){
+        overlay.classList.remove('show');
+        document.body.style.overflow = '';
+        btnCancel.removeEventListener('click', onCancel);
+        btnOk.removeEventListener('click', onOk);
+        resolve(val);
+      }
+      function onCancel(){ cleanup(false); }
+      function onOk(){ cleanup(true); }
+
+      btnCancel.addEventListener('click', onCancel);
+      btnOk.addEventListener('click', onOk);
+    });
+  }
+
+  function customAlert(message, title, eyebrow){
+    return customConfirm({
+      eyebrow: eyebrow || 'INFORMASI',
+      title: title || 'Pemberitahuan',
+      message: message,
+      confirmText: 'Mengerti',
+      hideCancel: true
+    });
+  }
+
+  // ==================================================================
   // DOWNLOAD FILE ASLI & MANAJEMEN RENTANG TANGGAL
   // ==================================================================
   function saveBlobLocally(blob, filename){
@@ -2513,6 +2781,7 @@
 
   async function downloadSingleEntryFile(scope, e){
     if(!e) return;
+    var datePfx = fmtFileDatePrefix(e.ts);
     if(scope === 'voice'){
       var blob = e.audioBlob;
       if(!blob && (e.blob_key || e.id)){
@@ -2523,9 +2792,9 @@
       }
       if(blob){
         var ext = (blob.type && blob.type.indexOf('mp4') !== -1) ? 'mp4' : 'webm';
-        saveBlobLocally(blob, 'latih-voice-' + (e.id || Date.now()) + '.' + ext);
+        saveBlobLocally(blob, datePfx + '_latih-voice_' + (e.id || Date.now()) + '.' + ext);
       } else {
-        alert('File audio tidak ditemukan di lokal maupun cloud.');
+        await customAlert('File audio tidak ditemukan di lokal maupun cloud.', 'File Tidak Ditemukan');
       }
     } else if(scope === 'video'){
       var blob = e.videoBlob;
@@ -2537,9 +2806,9 @@
       }
       if(blob){
         var ext = (blob.type && blob.type.indexOf('mp4') !== -1) ? 'mp4' : 'webm';
-        saveBlobLocally(blob, 'latih-video-' + (e.id || Date.now()) + '.' + ext);
+        saveBlobLocally(blob, datePfx + '_latih-video_' + (e.id || Date.now()) + '.' + ext);
       } else {
-        alert('File video tidak ditemukan di lokal maupun cloud.');
+        await customAlert('File video tidak ditemukan di lokal maupun cloud.', 'File Tidak Ditemukan');
       }
     } else if(scope === 'ketik'){
       var txt = 'LATIH. - Latihan Menulis (Ketik)\nTanggal: ' + fmtFullDate(e.ts) + ' ' + fmtTime(e.ts) + '\n\n' +
@@ -2548,7 +2817,7 @@
         'ARTI:\n' + (e.translation || '-') + '\n\n' +
         'CATATAN:\n' + (e.note || '-');
       var b = new Blob([txt], {type:'text/plain;charset=utf-8'});
-      saveBlobLocally(b, 'latih-ketik-' + (e.id || Date.now()) + '.txt');
+      saveBlobLocally(b, datePfx + '_latih-ketik_' + (e.id || Date.now()) + '.txt');
     } else if(scope === 'baca'){
       var paras = (e.paragraphs || []).map(function(p, i){
         return (i+1) + '. ' + p.en + '\n   ' + p.id;
@@ -2558,7 +2827,7 @@
         'Tanggal: ' + fmtFullDate(e.ts) + ' ' + fmtTime(e.ts) + '\n\n' +
         paras;
       var b = new Blob([txt], {type:'text/plain;charset=utf-8'});
-      saveBlobLocally(b, 'latih-baca-' + (e.id || Date.now()) + '.txt');
+      saveBlobLocally(b, datePfx + '_latih-baca_' + (e.id || Date.now()) + '.txt');
     }
   }
 
@@ -2600,13 +2869,26 @@
     var items = getEntriesInRange(scopeEl.value, fromEl.value, toEl.value);
 
     if(!items.length){
-      alert('Tidak ada riwayat pada rentang tanggal yang dipilih.');
+      await customAlert('Tidak ada riwayat pada rentang tanggal yang dipilih.', 'Riwayat Kosong');
       return;
     }
 
-    if(items.length > 20){
-      if(!confirm('Anda akan mengunduh ' + items.length + ' file sekaligus. Lanjutkan?')) return;
-    }
+    var counts = { ketik: 0, voice: 0, video: 0, baca: 0 };
+    items.forEach(function(it){ if(counts[it.scope] !== undefined) counts[it.scope]++; });
+    var details = [];
+    if(counts.video) details.push(counts.video + ' Video');
+    if(counts.voice) details.push(counts.voice + ' Audio Voice');
+    if(counts.ketik) details.push(counts.ketik + ' Catatan Ketik');
+    if(counts.baca) details.push(counts.baca + ' Cerita Baca');
+
+    var ok = await customConfirm({
+      eyebrow: 'UNDUH FILE MEDIA',
+      title: 'Unduh ' + items.length + ' File Media?',
+      htmlMessage: 'File akan diunduh satu per satu secara otomatis (' + details.join(', ') + ').<br><br>Setiap file diberi penamaan tanggal di depan (YYYY-MM-DD) agar rapi saat diurutkan.',
+      confirmText: 'Mulai Unduh (' + items.length + ')',
+      cancelText: 'Batal'
+    });
+    if(!ok) return;
 
     setExportStatus('Mengunduh ' + items.length + ' file media...');
     for(var i=0; i<items.length; i++){
@@ -2624,7 +2906,7 @@
     var items = getEntriesInRange(scopeEl.value, fromEl.value, toEl.value);
 
     if(!items.length){
-      alert('Tidak ada riwayat pada rentang tanggal yang dipilih.');
+      await customAlert('Tidak ada riwayat pada rentang tanggal yang dipilih.', 'Riwayat Kosong');
       return;
     }
 
@@ -2641,9 +2923,164 @@
     if(counts.video) summaryTxt.push(counts.video + ' video');
     if(counts.baca) summaryTxt.push(counts.baca + ' baca');
 
-    var msg = 'PERINGATAN: Hapus permanen ' + items.length + ' entri riwayat (' + summaryTxt.join(', ') + ')?\n\n' +
-      'Data akan dihapus dari IndexedDB lokal dan Cloudflare D1, serta seluruh file rekaman terkait di Workers KV akan dihapus agar kuota bersih.\n\nTindakan ini tidak bisa dibatalkan.';
-    if(!confirm(msg)) return;
+    var ok = await customConfirm({
+      eyebrow: 'PERINGATAN HAPUS',
+      title: 'Hapus ' + items.length + ' Entri Riwayat?',
+      htmlMessage: 'Data (' + summaryTxt.join(', ') + ') akan dihapus permanen dari IndexedDB lokal dan Cloudflare D1/KV. File rekaman di cloud akan dibersihkan agar kuota tetap hemat.<br><br><span style="color:var(--rec-red); font-weight:700;">Tindakan ini tidak bisa dibatalkan.</span>',
+      confirmText: 'Ya, Hapus Permanen',
+      cancelText: 'Batal',
+      isDanger: true
+    });
+    if(!ok) return;
+
+    setExportStatus('Menghapus ' + items.length + ' entri dari lokal dan cloud...');
+    setCloudBadge('syncing', 'Menghapus...');
+
+    // 1. Hapus dari IndexedDB lokal & filter array memori
+    for(var i=0; i<items.length; i++){
+      var it = items[i];
+      await idbDelete(it.scope, it.entry.id);
+    }
+    var idSet = {};
+    items.forEach(function(it){ idSet[it.entry.id] = true; });
+
+    KETIK = KETIK.filter(function(e){ return !idSet[e.id]; });
+    VOICE = VOICE.filter(function(e){ return !idSet[e.id]; });
+    VIDEO = VIDEO.filter(function(e){ return !idSet[e.id]; });
+    BACA = BACA.filter(function(e){ return !idSet[e.id]; });
+
+    // 2. Hapus dari Cloud (D1 & KV)
+    for(var sc in groupedIds){
+      if(groupedIds[sc].length){
+        await deleteFromCloud(sc, groupedIds[sc]);
+      }
+    }
+
+    renderKetikLists(); renderVoiceLists(); renderVideoLists(); renderBacaLists();
+    renderCalendar(); renderHeader();
+    updateRangeCountPreview();
+
+    setCloudBadge('ok', 'Cloud Tersinkron');
+    setExportStatus('Berhasil menghapus ' + items.length + ' entri.');
+  }
+
+  // ==================================================================
+  // PREVIEW MODAL LOGIC (Daftar File Terseleksi & Kategori Tabs)
+  // ==================================================================
+  var activePreviewFilter = 'all';
+  var cachedPreviewItems = [];
+
+  function renderPreviewList(){
+    var listEl = document.getElementById('previewModalList');
+    if(!listEl) return;
+    var filtered = cachedPreviewItems;
+    if(activePreviewFilter !== 'all'){
+      filtered = cachedPreviewItems.filter(function(it){ return it.scope === activePreviewFilter; });
+    }
+
+    if(!filtered.length){
+      listEl.innerHTML = '<div style="text-align:center; padding:32px 16px; color:var(--ink-faint); font-size:13px;">Tidak ada entri pada kategori ini.</div>';
+      return;
+    }
+
+    var html = '';
+    filtered.forEach(function(it){
+      var e = it.entry;
+      var sc = it.scope;
+      var badgeLabel = sc === 'ketik' ? 'Ketik' : sc === 'voice' ? 'Voice' : sc === 'video' ? 'Video' : 'Baca';
+      var title = '';
+      var sub = '';
+
+      if(sc === 'video'){
+        title = e.topic || 'Latihan Bicara Video';
+        sub = (e.duration ? e.duration + ' · ' : '') + '"' + escapeHtml(e.sentence || '') + '"';
+      } else if(sc === 'voice'){
+        title = e.topic || 'Latihan Bicara Voice';
+        sub = (e.duration ? e.duration + ' · ' : '') + '"' + escapeHtml(e.sentence || '') + '"';
+      } else if(sc === 'ketik'){
+        var cleanTxt = (e.text || '').replace(/\s+/g, ' ').trim();
+        title = cleanTxt ? '"' + escapeHtml(cleanTxt.slice(0, 60)) + (cleanTxt.length > 60 ? '...' : '') + '"' : 'Tulisan Ketik';
+        sub = e.correctedSentence ? 'Koreksi: ' + escapeHtml(e.correctedSentence.slice(0, 60)) : (e.translation || '');
+      } else if(sc === 'baca'){
+        title = e.title || 'Baca Cerita';
+        sub = e.titleId || (e.paragraphs ? e.paragraphs.length + ' paragraf' : '');
+      }
+
+      var dateStr = fmtDateShort(e.ts) + ' · ' + fmtTime(e.ts);
+
+      html += '<div class="preview-entry-card">' +
+        '<div class="preview-entry-left">' +
+          '<div class="preview-entry-meta">' +
+            '<span class="preview-badge ' + sc + '">' + badgeLabel + '</span>' +
+            '<span class="preview-entry-time">' + dateStr + '</span>' +
+          '</div>' +
+          '<div class="preview-entry-title">' + title + '</div>' +
+          '<div class="preview-entry-sub">' + sub + '</div>' +
+        '</div>' +
+        '<button type="button" class="preview-entry-btn-dl" data-prev-scope="' + sc + '" data-prev-id="' + e.id + '" title="Unduh file ini">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>' +
+        '</button>' +
+      '</div>';
+    });
+    listEl.innerHTML = html;
+  }
+
+  async function openRangePreviewModal(){
+    var scopeEl = document.getElementById('rangeScopeSelect');
+    var fromEl = document.getElementById('rangeDateFrom');
+    var toEl = document.getElementById('rangeDateTo');
+    var items = getEntriesInRange(scopeEl.value, fromEl.value, toEl.value);
+
+    if(!items.length){
+      await customAlert('Tidak ada riwayat pada rentang tanggal dan kategori yang dipilih.', 'Riwayat Kosong');
+      return;
+    }
+
+    cachedPreviewItems = items;
+    activePreviewFilter = 'all';
+
+    var overlay = document.getElementById('previewRangeModalOverlay');
+    var titleEl = document.getElementById('previewModalTitle');
+    var tabsEl = document.getElementById('previewCategoryTabs');
+    var btnDlAll = document.getElementById('previewModalBtnDownloadAll');
+
+    titleEl.textContent = 'Daftar Entri (' + items.length + ')';
+    btnDlAll.querySelector('span').textContent = 'Unduh Semua (' + items.length + ')';
+
+    var counts = { ketik: 0, voice: 0, video: 0, baca: 0 };
+    items.forEach(function(it){ if(counts[it.scope] !== undefined) counts[it.scope]++; });
+    var distinctScopes = Object.keys(counts).filter(function(k){ return counts[k] > 0; });
+
+    if(distinctScopes.length > 1){
+      tabsEl.style.display = 'flex';
+      var tabsHtml = '<button type="button" class="prev-tab-btn active" data-prev-tab="all">Semua (' + items.length + ')</button>';
+      if(counts.ketik) tabsHtml += '<button type="button" class="prev-tab-btn" data-prev-tab="ketik">Ketik (' + counts.ketik + ')</button>';
+      if(counts.voice) tabsHtml += '<button type="button" class="prev-tab-btn" data-prev-tab="voice">Voice (' + counts.voice + ')</button>';
+      if(counts.video) tabsHtml += '<button type="button" class="prev-tab-btn" data-prev-tab="video">Video (' + counts.video + ')</button>';
+      if(counts.baca) tabsHtml += '<button type="button" class="prev-tab-btn" data-prev-tab="baca">Baca (' + counts.baca + ')</button>';
+      tabsEl.innerHTML = tabsHtml;
+    } else if(distinctScopes.length === 1){
+      var onlySc = distinctScopes[0];
+      var labelMap = { ketik: 'Ketik', voice: 'Voice', video: 'Video', baca: 'Baca' };
+      tabsEl.style.display = 'flex';
+      tabsEl.innerHTML = '<span class="preview-badge ' + onlySc + '" style="font-size:11px; padding:4px 10px;">Kategori: ' + labelMap[onlySc] + ' (' + items.length + ' entri)</span>';
+    } else {
+      tabsEl.style.display = 'none';
+      tabsEl.innerHTML = '';
+    }
+
+    renderPreviewList();
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeRangePreviewModal(){
+    var overlay = document.getElementById('previewRangeModalOverlay');
+    if(overlay){
+      overlay.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  }
 
     setExportStatus('Menghapus ' + items.length + ' entri dari lokal dan cloud...');
     setCloudBadge('syncing', 'Menghapus...');
@@ -3054,6 +3491,58 @@
 
   var btnDelRange = document.getElementById('btnDeleteRange');
   if(btnDelRange) btnDelRange.addEventListener('click', handleRangeDelete);
+
+  var btnPrevRange = document.getElementById('btnPreviewRange');
+  if(btnPrevRange) btnPrevRange.addEventListener('click', openRangePreviewModal);
+
+  var prevCloseBtn = document.getElementById('previewModalClose');
+  if(prevCloseBtn) prevCloseBtn.addEventListener('click', closeRangePreviewModal);
+
+  var prevCancelBtn = document.getElementById('previewModalBtnCancel');
+  if(prevCancelBtn) prevCancelBtn.addEventListener('click', closeRangePreviewModal);
+
+  var prevOverlay = document.getElementById('previewRangeModalOverlay');
+  if(prevOverlay){
+    prevOverlay.addEventListener('click', function(e){
+      if(e.target === prevOverlay) closeRangePreviewModal();
+    });
+  }
+
+  var prevTabs = document.getElementById('previewCategoryTabs');
+  if(prevTabs){
+    prevTabs.addEventListener('click', function(e){
+      var btn = e.target.closest('.prev-tab-btn');
+      if(!btn) return;
+      prevTabs.querySelectorAll('.prev-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      activePreviewFilter = btn.dataset.prevTab || 'all';
+      renderPreviewList();
+    });
+  }
+
+  var prevList = document.getElementById('previewModalList');
+  if(prevList){
+    prevList.addEventListener('click', async function(e){
+      var dlBtn = e.target.closest('.preview-entry-btn-dl');
+      if(!dlBtn) return;
+      var sc = dlBtn.dataset.prevScope;
+      var id = dlBtn.dataset.prevId;
+      var found = cachedPreviewItems.find(function(it){ return it.scope === sc && it.entry.id === id; });
+      if(found){
+        dlBtn.disabled = true;
+        await downloadSingleEntryFile(found.scope, found.entry);
+        dlBtn.disabled = false;
+      }
+    });
+  }
+
+  var btnPrevDlAll = document.getElementById('previewModalBtnDownloadAll');
+  if(btnPrevDlAll){
+    btnPrevDlAll.addEventListener('click', function(){
+      closeRangePreviewModal();
+      handleRangeDownload();
+    });
+  }
 
   document.getElementById('btnExportData').addEventListener('click', exportData);
   document.getElementById('btnImportData').addEventListener('click', function(){
@@ -4180,7 +4669,7 @@
   function speakEnglishBrowser(text){
     if(!text) return;
     if(!('speechSynthesis' in window)){
-      alert('Browser ini belum mendukung fitur dengar (Text-to-Speech). Coba pakai Chrome, Edge, atau Safari versi terbaru.');
+      customAlert('Browser ini belum mendukung fitur dengar (Text-to-Speech). Coba pakai Chrome, Edge, atau Safari versi terbaru.', 'Fitur Tidak Didukung');
       return;
     }
     window.speechSynthesis.cancel();
@@ -4913,8 +5402,15 @@
     var arr = scope === 'ketik' ? KETIK : scope === 'voice' ? VOICE : scope === 'video' ? VIDEO : scope === 'baca' ? BACA : null;
     if(!arr || !arr[idx]) return;
     var e = arr[idx];
-    var labelMap = {ketik:'tulisan', voice:'voice', video:'video', baca:'cerita'};
-    if(!confirm('Hapus riwayat ' + labelMap[scope] + ' ini? Tindakan ini tidak bisa dibatalkan.')) return;
+    var ok = await customConfirm({
+      eyebrow: 'HAPUS RIWAYAT',
+      title: 'Hapus riwayat ' + labelMap[scope] + ' ini?',
+      message: 'Data dan file rekaman terkait akan dihapus permanen dari perangkat dan cloud. Tindakan ini tidak bisa dibatalkan.',
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      isDanger: true
+    });
+    if(!ok) return;
     await idbDelete(scope, e.id);
     deleteFromCloud(scope, [e.id]);
     arr.splice(idx, 1);
