@@ -1,19 +1,17 @@
 // =====================================================================
-// LATIH. - Proxy Gemini (Cloudflare Worker)
+// LATIH. - Proxy Gemini, TTS, D1 Database, & Workers KV (Cloudflare Worker)
 // -----------------------------------------------------------------------
-// Tugas file ini: nyimpen API key Gemini di SERVER (bukan di browser),
-// jadi PWA/HTML kamu bisa dipublikasikan di GitHub Pages tanpa bocorin
-// key. PWA cuma manggil URL Worker ini, Worker yang manggil Gemini
-// pakai key asli yang cuma dia tahu.
+// Tugas file ini:
+// 1. Menyimpan API key Gemini di SERVER (bukan di browser) untuk proxy AI & TTS
+// 2. Sinkronisasi data teks ke Cloudflare D1 (tabel ketik, voice, video, baca, kamus)
+// 3. Penyimpanan file media (audio & video mentah) ke Cloudflare Workers KV
 //
-// Cara pasang: lihat README_SETUP.md. Ringkasnya - paste file ini ke
-// Cloudflare Workers (dashboard, "Quick Edit"), lalu set secret
-// GEMINI_KEYS lewat Settings > Variables (BUKAN ditulis di sini).
+// Bindings yang wajib ada di env:
+// - env.GEMINI_KEYS (Secret)
+// - env.DB (D1 Database binding: latih-db)
+// - env.KV_MEDIA (KV Namespace binding: latih-media)
 // =====================================================================
 
-// Kalau nanti udah tau URL PWA kamu (mis. https://username.github.io),
-// ganti '*' di bawah dengan URL itu biar cuma PWA kamu yang boleh manggil
-// Worker ini. Boleh dibiarkan '*' dulu selagi masih coba-coba.
 const ALLOWED_ORIGIN = '*';
 
 const GEMINI_MODELS = [
@@ -32,8 +30,8 @@ const GEMINI_TTS_MODELS = ['gemini-2.5-flash-preview-tts', 'gemini-3.1-flash-tts
 function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   };
 }
 
@@ -42,6 +40,16 @@ function jsonResponse(obj, status) {
     status: status || 200,
     headers: Object.assign({ 'Content-Type': 'application/json' }, corsHeaders())
   });
+}
+
+function safeJsonParse(str, fallback) {
+  if (!str) return fallback;
+  if (typeof str === 'object') return str;
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    return fallback;
+  }
 }
 
 // Panggil Gemini TTS: mengembalikan audio PCM base64 + mimeType (mengandung
@@ -105,6 +113,358 @@ export default {
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders() });
     }
+
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    // ===================================================================
+    // 1. ENDPOINTS MANAJEMEN BLOB (Workers KV: env.KV_MEDIA)
+    // /blob/:id -> PUT (upload), GET (unduh), DELETE (hapus)
+    // ===================================================================
+    const blobMatch = path.match(/^\/blob\/(.+)$/);
+    if (blobMatch) {
+      if (!env.KV_MEDIA) {
+        return jsonResponse({ error: 'Binding KV_MEDIA belum terkonfigurasi di Worker.' }, 500);
+      }
+      const blobId = decodeURIComponent(blobMatch[1]);
+
+      if (request.method === 'PUT') {
+        try {
+          const mime = request.headers.get('Content-Type') || 'application/octet-stream';
+          const arrayBuffer = await request.arrayBuffer();
+          if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+            return jsonResponse({ error: 'Body binary tidak boleh kosong.' }, 400);
+          }
+          await env.KV_MEDIA.put(blobId, arrayBuffer, { metadata: { mimeType: mime } });
+          return jsonResponse({ ok: true, id: blobId, size: arrayBuffer.byteLength, mimeType: mime });
+        } catch (e) {
+          return jsonResponse({ error: 'Gagal menyimpan blob ke KV: ' + e.message }, 500);
+        }
+      }
+
+      if (request.method === 'GET') {
+        try {
+          const res = await env.KV_MEDIA.getWithMetadata(blobId, 'arrayBuffer');
+          if (!res || !res.value) {
+            return jsonResponse({ error: 'Blob tidak ditemukan di KV.' }, 404);
+          }
+          const mime = (res.metadata && res.metadata.mimeType) || 'application/octet-stream';
+          return new Response(res.value, {
+            headers: Object.assign(
+              {
+                'Content-Type': mime,
+                'Cache-Control': 'public, max-age=31536000, immutable'
+              },
+              corsHeaders()
+            )
+          });
+        } catch (e) {
+          return jsonResponse({ error: 'Gagal mengambil blob dari KV: ' + e.message }, 500);
+        }
+      }
+
+      if (request.method === 'DELETE') {
+        try {
+          await env.KV_MEDIA.delete(blobId);
+          return jsonResponse({ ok: true, id: blobId });
+        } catch (e) {
+          return jsonResponse({ error: 'Gagal menghapus blob dari KV: ' + e.message }, 500);
+        }
+      }
+
+      return jsonResponse({ error: 'Method not allowed untuk endpoint /blob/:id.' }, 405);
+    }
+
+    // ===================================================================
+    // 2. ENDPOINTS SINKRONISASI TEKS (D1 Database: env.DB)
+    // /sync/push, /sync/pull, /sync/delete
+    // ===================================================================
+    if (path === '/sync/push') {
+      if (request.method !== 'POST') {
+        return jsonResponse({ error: 'Method not allowed, pakai POST untuk /sync/push.' }, 405);
+      }
+      if (!env.DB) {
+        return jsonResponse({ error: 'Binding DB (D1) belum terkonfigurasi di Worker.' }, 500);
+      }
+
+      let body;
+      try {
+        body = await request.json();
+      } catch (e) {
+        return jsonResponse({ error: 'Body request /sync/push harus JSON.' }, 400);
+      }
+
+      try {
+        const statements = [];
+
+        // Ketik
+        const ketikArr = Array.isArray(body.ketik) ? body.ketik : [];
+        for (const item of ketikArr) {
+          if (!item || !item.id) continue;
+          statements.push(
+            env.DB.prepare(
+              `INSERT OR REPLACE INTO ketik (id, ts, text, diffs, corrections, note, translation, correctedSentence, status, meta)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
+              String(item.id),
+              Number(item.ts) || Date.now(),
+              String(item.text || ''),
+              JSON.stringify(item.diffs || []),
+              JSON.stringify(item.corrections || []),
+              String(item.note || ''),
+              String(item.translation || ''),
+              String(item.correctedSentence || ''),
+              String(item.status || 'ok'),
+              String(item.meta || '')
+            )
+          );
+        }
+
+        // Voice (tanpa audioBlob mentah, hanya blob_key)
+        const voiceArr = Array.isArray(body.voice) ? body.voice : [];
+        for (const item of voiceArr) {
+          if (!item || !item.id) continue;
+          statements.push(
+            env.DB.prepare(
+              `INSERT OR REPLACE INTO voice (id, ts, mimeType, blob_key, sentence, correctedSentence, wordTags, meaning, pron, translation, status, meta)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
+              String(item.id),
+              Number(item.ts) || Date.now(),
+              String(item.mimeType || 'audio/webm'),
+              String(item.blob_key || item.id),
+              String(item.sentence || ''),
+              String(item.correctedSentence || ''),
+              JSON.stringify(item.wordTags || []),
+              JSON.stringify(item.meaning || []),
+              JSON.stringify(item.pron || []),
+              String(item.translation || ''),
+              String(item.status || 'ok'),
+              String(item.meta || '')
+            )
+          );
+        }
+
+        // Video (tanpa videoBlob mentah, hanya blob_key)
+        const videoArr = Array.isArray(body.video) ? body.video : [];
+        for (const item of videoArr) {
+          if (!item || !item.id) continue;
+          statements.push(
+            env.DB.prepare(
+              `INSERT OR REPLACE INTO video (id, ts, mimeType, blob_key, thumb, duration, topic, sentence, correctedSentence, wordTags, meaning, pron, translation, status, meta)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
+              String(item.id),
+              Number(item.ts) || Date.now(),
+              String(item.mimeType || 'video/webm'),
+              String(item.blob_key || item.id),
+              String(item.thumb || ''),
+              String(item.duration || ''),
+              String(item.topic || ''),
+              String(item.sentence || ''),
+              String(item.correctedSentence || ''),
+              JSON.stringify(item.wordTags || []),
+              JSON.stringify(item.meaning || []),
+              JSON.stringify(item.pron || []),
+              String(item.translation || ''),
+              String(item.status || 'ok'),
+              String(item.meta || '')
+            )
+          );
+        }
+
+        // Baca
+        const bacaArr = Array.isArray(body.baca) ? body.baca : [];
+        for (const item of bacaArr) {
+          if (!item || !item.id) continue;
+          statements.push(
+            env.DB.prepare(
+              `INSERT OR REPLACE INTO baca (id, ts, kind, query, title, titleId, paragraphs)
+               VALUES (?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
+              String(item.id),
+              Number(item.ts) || Date.now(),
+              String(item.kind || 'news'),
+              String(item.query || ''),
+              String(item.title || ''),
+              String(item.titleId || ''),
+              JSON.stringify(item.paragraphs || [])
+            )
+          );
+        }
+
+        // Kamus
+        const kamusArr = Array.isArray(body.kamus) ? body.kamus : [];
+        for (const item of kamusArr) {
+          if (!item || !item.word) continue;
+          statements.push(
+            env.DB.prepare(
+              `INSERT OR REPLACE INTO kamus (word, translation, ts)
+               VALUES (?, ?, ?)`
+            ).bind(
+              String(item.word).toLowerCase().trim(),
+              String(item.translation || ''),
+              Number(item.ts) || Date.now()
+            )
+          );
+        }
+
+        // Kamus Exclude
+        const kamusExArr = Array.isArray(body.kamusExclude) ? body.kamusExclude : [];
+        for (const item of kamusExArr) {
+          if (!item || !item.word) continue;
+          statements.push(
+            env.DB.prepare(
+              `INSERT OR REPLACE INTO kamus_exclude (word, ts)
+               VALUES (?, ?)`
+            ).bind(
+              String(item.word).toLowerCase().trim(),
+              Number(item.ts) || Date.now()
+            )
+          );
+        }
+
+        // D1 membatasi batch size (~100 statements per call), kita chunk jika perlu
+        const CHUNK_SIZE = 90;
+        let executed = 0;
+        for (let i = 0; i < statements.length; i += CHUNK_SIZE) {
+          const chunk = statements.slice(i, i + CHUNK_SIZE);
+          await env.DB.batch(chunk);
+          executed += chunk.length;
+        }
+
+        return jsonResponse({ ok: true, savedStatements: executed });
+      } catch (e) {
+        return jsonResponse({ error: 'Gagal push ke D1: ' + e.message }, 500);
+      }
+    }
+
+    if (path === '/sync/pull') {
+      if (request.method !== 'GET') {
+        return jsonResponse({ error: 'Method not allowed, pakai GET untuk /sync/pull.' }, 405);
+      }
+      if (!env.DB) {
+        return jsonResponse({ error: 'Binding DB (D1) belum terkonfigurasi di Worker.' }, 500);
+      }
+
+      try {
+        const [kRes, vRes, vdRes, bRes, kmRes, kxRes] = await env.DB.batch([
+          env.DB.prepare('SELECT * FROM ketik ORDER BY ts DESC'),
+          env.DB.prepare('SELECT * FROM voice ORDER BY ts DESC'),
+          env.DB.prepare('SELECT * FROM video ORDER BY ts DESC'),
+          env.DB.prepare('SELECT * FROM baca ORDER BY ts DESC'),
+          env.DB.prepare('SELECT * FROM kamus ORDER BY word ASC'),
+          env.DB.prepare('SELECT * FROM kamus_exclude ORDER BY word ASC')
+        ]);
+
+        const ketik = (kRes.results || []).map(r => ({
+          ...r,
+          diffs: safeJsonParse(r.diffs, []),
+          corrections: safeJsonParse(r.corrections, [])
+        }));
+
+        const voice = (vRes.results || []).map(r => ({
+          ...r,
+          wordTags: safeJsonParse(r.wordTags, []),
+          meaning: safeJsonParse(r.meaning, []),
+          pron: safeJsonParse(r.pron, [])
+        }));
+
+        const video = (vdRes.results || []).map(r => ({
+          ...r,
+          wordTags: safeJsonParse(r.wordTags, []),
+          meaning: safeJsonParse(r.meaning, []),
+          pron: safeJsonParse(r.pron, [])
+        }));
+
+        const baca = (bRes.results || []).map(r => ({
+          ...r,
+          paragraphs: safeJsonParse(r.paragraphs, [])
+        }));
+
+        return jsonResponse({
+          ok: true,
+          ketik,
+          voice,
+          video,
+          baca,
+          kamus: kmRes.results || [],
+          kamusExclude: kxRes.results || []
+        });
+      } catch (e) {
+        return jsonResponse({ error: 'Gagal pull dari D1: ' + e.message }, 500);
+      }
+    }
+
+    if (path === '/sync/delete') {
+      if (request.method !== 'POST') {
+        return jsonResponse({ error: 'Method not allowed, pakai POST untuk /sync/delete.' }, 405);
+      }
+      if (!env.DB) {
+        return jsonResponse({ error: 'Binding DB (D1) belum terkonfigurasi di Worker.' }, 500);
+      }
+
+      let body;
+      try {
+        body = await request.json();
+      } catch (e) {
+        return jsonResponse({ error: 'Body request /sync/delete harus JSON.' }, 400);
+      }
+
+      const scope = body.scope;
+      const ids = Array.isArray(body.ids) ? body.ids : (body.id ? [body.id] : []);
+      if (!scope || !ids.length) {
+        return jsonResponse({ error: 'Field "scope" dan array "ids" wajib diisi.' }, 400);
+      }
+
+      const tableMap = {
+        ketik: { table: 'ketik', key: 'id' },
+        voice: { table: 'voice', key: 'id' },
+        video: { table: 'video', key: 'id' },
+        baca: { table: 'baca', key: 'id' },
+        kamus: { table: 'kamus', key: 'word' },
+        kamusExclude: { table: 'kamus_exclude', key: 'word' }
+      };
+
+      const info = tableMap[scope];
+      if (!info) {
+        return jsonResponse({ error: 'Scope tidak valid: ' + scope }, 400);
+      }
+
+      try {
+        // Jika voice atau video, hapus juga file medianya dari KV agar tidak ada blob yatim
+        if ((scope === 'voice' || scope === 'video') && env.KV_MEDIA) {
+          for (const id of ids) {
+            try {
+              await env.KV_MEDIA.delete(id);
+            } catch (kvErr) {
+              // Teruskan penghapusan tabel meski satu blob gagal
+            }
+          }
+        }
+
+        const statements = ids.map(id =>
+          env.DB.prepare(`DELETE FROM ${info.table} WHERE ${info.key} = ?`).bind(id)
+        );
+
+        const CHUNK_SIZE = 90;
+        let deletedCount = 0;
+        for (let i = 0; i < statements.length; i += CHUNK_SIZE) {
+          const chunk = statements.slice(i, i + CHUNK_SIZE);
+          await env.DB.batch(chunk);
+          deletedCount += chunk.length;
+        }
+
+        return jsonResponse({ ok: true, deleted: deletedCount, scope });
+      } catch (e) {
+        return jsonResponse({ error: 'Gagal menghapus data di D1/KV: ' + e.message }, 500);
+      }
+    }
+
+    // ===================================================================
+    // 3. PROXY GEMINI & TTS (ROOT / POST /)
+    // Tetap dipertahankan apa adanya untuk komunikasi AI & suara
+    // ===================================================================
     if (request.method !== 'POST') {
       return jsonResponse({ error: 'Method not allowed, pakai POST.' }, 405);
     }
@@ -200,5 +560,3 @@ export default {
     }, 502);
   }
 };
-// test: trigger GitHub Actions auto-deploy 2026-08-23T17:07:23Z
-// test push 2: 2026-08-23T17:08:32Z
