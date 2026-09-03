@@ -2277,7 +2277,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.5.9'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.6.0'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -5210,7 +5210,7 @@
   }
   function renderVideoLists(){
     var mini = document.getElementById('videoMiniGrid'), full = document.getElementById('videoFullGrid');
-    mini.innerHTML = VIDEO.length ? VIDEO.slice(0,3).map(function(e,i){return renderVideoCard(e,i);}).join('') : emptyMsg('Belum ada video.');
+    mini.innerHTML = VIDEO.length ? VIDEO.slice(0,4).map(function(e,i){return renderVideoCard(e,i);}).join('') : emptyMsg('Belum ada video.');
     full.innerHTML = VIDEO.length ? VIDEO.map(function(e,i){return renderVideoCard(e,i);}).join('') : emptyMsg('Belum ada video.');
     wireFilters('videoFilters', full, document.getElementById('videoHistCount'), 'video');
   }
