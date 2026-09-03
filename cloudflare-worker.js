@@ -135,7 +135,7 @@ export default {
           if (!arrayBuffer || arrayBuffer.byteLength === 0) {
             return jsonResponse({ error: 'Body binary tidak boleh kosong.' }, 400);
           }
-          await env.KV_MEDIA.put(blobId, arrayBuffer, { metadata: { mimeType: mime } });
+          await env.KV_MEDIA.put(blobId, arrayBuffer, { metadata: { mimeType: mime, size: arrayBuffer.byteLength, ts: Date.now() } });
           return jsonResponse({ ok: true, id: blobId, size: arrayBuffer.byteLength, mimeType: mime });
         } catch (e) {
           return jsonResponse({ error: 'Gagal menyimpan blob ke KV: ' + e.message }, 500);
@@ -557,6 +557,56 @@ export default {
         return jsonResponse({ ok: true, deleted: deletedCount, scope });
       } catch (e) {
         return jsonResponse({ error: 'Gagal menghapus data di D1/KV: ' + e.message }, 500);
+      }
+    }
+
+    if (path === '/sync/storage') {
+      if (request.method !== 'GET') {
+        return jsonResponse({ error: 'Method not allowed, gunakan GET untuk /sync/storage.' }, 405);
+      }
+      try {
+        let kvCount = 0;
+        let kvBytes = 0;
+        if (env.KV_MEDIA) {
+          const list = await env.KV_MEDIA.list({ limit: 1000 });
+          kvCount = (list.keys || []).length;
+          for (const k of (list.keys || [])) {
+            if (k.metadata && k.metadata.size) {
+              kvBytes += Number(k.metadata.size);
+            }
+          }
+        }
+        let d1Counts = { ketik: 0, voice: 0, video: 0, baca: 0, kamus: 0 };
+        if (env.DB) {
+          try {
+            const [kRes, vRes, vdRes, bRes, kmRes] = await env.DB.batch([
+              env.DB.prepare('SELECT count(*) as total FROM ketik'),
+              env.DB.prepare('SELECT count(*) as total FROM voice'),
+              env.DB.prepare('SELECT count(*) as total FROM video'),
+              env.DB.prepare('SELECT count(*) as total FROM baca'),
+              env.DB.prepare('SELECT count(*) as total FROM kamus')
+            ]);
+            d1Counts.ketik = (kRes.results && kRes.results[0] && kRes.results[0].total) || 0;
+            d1Counts.voice = (vRes.results && vRes.results[0] && vRes.results[0].total) || 0;
+            d1Counts.video = (vdRes.results && vdRes.results[0] && vdRes.results[0].total) || 0;
+            d1Counts.baca = (bRes.results && bRes.results[0] && bRes.results[0].total) || 0;
+            d1Counts.kamus = (kmRes.results && kmRes.results[0] && kmRes.results[0].total) || 0;
+          } catch (e) {}
+        }
+        return jsonResponse({
+          ok: true,
+          kv: {
+            count: kvCount,
+            bytes: kvBytes,
+            limitBytes: 1073741824 // 1 GB (1024 MB) free tier
+          },
+          d1: {
+            counts: d1Counts,
+            limitBytes: 5368709120 // 5 GB free tier
+          }
+        });
+      } catch (e) {
+        return jsonResponse({ error: 'Gagal mengambil info storage: ' + e.message }, 500);
       }
     }
 

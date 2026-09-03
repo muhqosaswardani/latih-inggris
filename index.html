@@ -375,6 +375,129 @@
     border: 1px solid rgba(30,143,90,0.15);
   }
 
+  /* Cloudflare Storage Capacity Card */
+  .storage-capacity-card{
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 4px rgba(15,37,34,0.04);
+  }
+  .storage-cap-head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .storage-cap-title-row{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .storage-cap-icon{
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: var(--tape-green-dim);
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+  .storage-cap-icon svg{
+    width: 18px;
+    height: 18px;
+  }
+  .storage-cap-title{
+    font-family: var(--mono);
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+  .storage-cap-subtitle{
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .storage-cap-badge{
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 6px;
+    flex: none;
+  }
+  .storage-cap-badge.ok{ background: var(--tape-green-dim); color: var(--tape-green); }
+  .storage-cap-badge.warn{ background: var(--amber-dim); color: var(--amber); }
+  .storage-cap-badge.danger{ background: var(--rec-red-dim); color: var(--rec-red); }
+
+  .storage-track{
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--line);
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .storage-bar{
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--navy) 0%, var(--tape-green) 100%);
+    transition: width .4s cubic-bezier(.2,.8,.2,1), background .3s ease;
+  }
+  .storage-bar.warn{
+    background: linear-gradient(90deg, var(--amber) 0%, #D97706 100%);
+  }
+  .storage-bar.danger{
+    background: linear-gradient(90deg, var(--rec-red) 0%, #E11D48 100%);
+  }
+
+  .storage-metrics-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+  }
+  .storage-used-val{
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .storage-percent-val{
+    color: var(--ink-faint);
+  }
+
+  .storage-pills-row{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .storage-pill{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--paper-alt);
+    border: 1px solid var(--line);
+    padding: 4px 9px;
+    border-radius: 8px;
+    color: var(--ink-soft);
+  }
+  .storage-pill svg{
+    width: 12px;
+    height: 12px;
+    color: var(--navy);
+  }
+
   .range-controls-grid{
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1615,6 +1738,49 @@
     </div>
     <input type="file" id="importFileInput" accept="application/json" style="display:none;">
 
+    <!-- KARTU KAPASITAS PENYIMPANAN CLOUDFLARE -->
+    <div class="storage-capacity-card" id="storageCapacityCard">
+      <div class="storage-cap-head">
+        <div class="storage-cap-title-row">
+          <div class="storage-cap-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+          </div>
+          <div>
+            <div class="storage-cap-title">Kapasitas Cloudflare KV &amp; D1</div>
+            <div class="storage-cap-subtitle">Media Video &amp; Audio (Kuota Gratis 1.00 GB)</div>
+          </div>
+        </div>
+        <span class="storage-cap-badge ok" id="storageStatusBadge">Normal</span>
+      </div>
+
+      <!-- PROGRESS BAR -->
+      <div class="storage-track">
+        <div class="storage-bar" id="storageProgressBar" style="width: 0%;"></div>
+      </div>
+
+      <!-- METRICS INFO -->
+      <div class="storage-metrics-row">
+        <span class="storage-used-val" id="storageUsedText">0.0 MB / 1.00 GB</span>
+        <span class="storage-percent-val" id="storagePercentText">0.0% terpakai</span>
+      </div>
+
+      <!-- BREAKDOWN PILLS -->
+      <div class="storage-pills-row">
+        <span class="storage-pill" id="storagePillVideo" title="Estimasi ukuran video di Cloudflare Workers KV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="13" height="12" rx="1.5"/><path d="M16 10l5-3v10l-5-3"/></svg>
+          <span id="storageCountVideo">0 Video (0 MB)</span>
+        </span>
+        <span class="storage-pill" id="storagePillVoice" title="Estimasi ukuran audio voice di Cloudflare Workers KV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+          <span id="storageCountVoice">0 Audio (0 KB)</span>
+        </span>
+        <span class="storage-pill" id="storagePillD1" title="Tabel teks di Cloudflare D1 Database">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          <span id="storageCountD1">D1: 5 GB Free</span>
+        </span>
+      </div>
+    </div>
+
     <!-- DIVIDER -->
     <div style="height:1px; background:var(--line); margin-bottom:22px;"></div>
 
@@ -2277,7 +2443,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.6.0'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.6.1'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -2856,6 +3022,111 @@
 
     var items = getEntriesInRange(scopeEl.value, fromEl.value, toEl.value);
     summaryEl.textContent = items.length + ' entri terpilih';
+    updateStorageIndicator();
+  }
+
+  async function updateStorageIndicator(){
+    var card = document.getElementById('storageCapacityCard');
+    if(!card) return;
+
+    var bar = document.getElementById('storageProgressBar');
+    var usedText = document.getElementById('storageUsedText');
+    var pctText = document.getElementById('storagePercentText');
+    var badge = document.getElementById('storageStatusBadge');
+    var pVid = document.getElementById('storageCountVideo');
+    var pVoice = document.getElementById('storageCountVoice');
+    var pD1 = document.getElementById('storageCountD1');
+
+    var KV_LIMIT = 1073741824; // 1 GB in bytes
+    var totalBytes = 0;
+    var videoBytes = 0;
+    var voiceBytes = 0;
+    var videoCount = (typeof VIDEO !== 'undefined' && Array.isArray(VIDEO)) ? VIDEO.length : 0;
+    var voiceCount = (typeof VOICE !== 'undefined' && Array.isArray(VOICE)) ? VOICE.length : 0;
+
+    // 1. Hitung ukuran dari memori / blob lokal
+    if(typeof VIDEO !== 'undefined' && Array.isArray(VIDEO)){
+      VIDEO.forEach(function(e){
+        if(e.videoBlob && e.videoBlob.size){
+          videoBytes += e.videoBlob.size;
+        } else {
+          // Rata-rata video webm resolusi sedang ~8MB per menit (~10MB rata-rata)
+          videoBytes += 10 * 1024 * 1024;
+        }
+      });
+    }
+
+    if(typeof VOICE !== 'undefined' && Array.isArray(VOICE)){
+      VOICE.forEach(function(e){
+        if(e.audioBlob && e.audioBlob.size){
+          voiceBytes += e.audioBlob.size;
+        } else {
+          // Rata-rata audio webm suara singkat ~75KB
+          voiceBytes += 75 * 1024;
+        }
+      });
+    }
+
+    totalBytes = videoBytes + voiceBytes;
+
+    // 2. Jika online, coba sinkronkan data aktual dari Worker /sync/storage
+    try{
+      if(navigator.onLine && PROXY_URL){
+        var res = await fetch(PROXY_URL + '/sync/storage', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if(res.ok){
+          var sData = await res.json();
+          if(sData && sData.kv){
+            if(sData.kv.bytes && sData.kv.bytes > 0){
+              totalBytes = sData.kv.bytes;
+            }
+            if(sData.kv.limitBytes){
+              KV_LIMIT = sData.kv.limitBytes;
+            }
+          }
+          if(sData && sData.d1 && sData.d1.counts && pD1){
+            var totalD1Rows = (sData.d1.counts.ketik||0) + (sData.d1.counts.voice||0) + (sData.d1.counts.video||0) + (sData.d1.counts.baca||0) + (sData.d1.counts.kamus||0);
+            pD1.textContent = 'D1: ' + totalD1Rows + ' baris data (5 GB Free)';
+          }
+        }
+      }
+    }catch(err){
+      // fallback ke kalkulasi lokal
+    }
+
+    // Format tampilan bytes
+    function fmtBytes(b){
+      if(b >= 1024 * 1024 * 1024) return (b / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+      if(b >= 1024 * 1024) return (b / (1024 * 1024)).toFixed(1) + ' MB';
+      if(b >= 1024) return (b / 1024).toFixed(0) + ' KB';
+      return b + ' B';
+    }
+
+    var pct = Math.min(100, (totalBytes / KV_LIMIT) * 100);
+    var pctDisplay = pct < 0.1 && totalBytes > 0 ? '<0.1%' : pct.toFixed(1) + '%';
+
+    if(usedText) usedText.textContent = fmtBytes(totalBytes) + ' / 1.00 GB';
+    if(pctText) pctText.textContent = pctDisplay + ' terpakai';
+
+    if(bar){
+      bar.style.width = Math.max(1.5, pct) + '%';
+      bar.classList.remove('warn', 'danger');
+      if(pct >= 85){
+        bar.classList.add('danger');
+      } else if(pct >= 70){
+        bar.classList.add('warn');
+      }
+    }
+
+    if(badge){
+      badge.className = 'storage-cap-badge ' + (pct >= 85 ? 'danger' : pct >= 70 ? 'warn' : 'ok');
+      badge.textContent = pct >= 85 ? 'Hampir Penuh' : pct >= 70 ? 'Waspada' : 'Aman';
+    }
+
+    if(pVid) pVid.textContent = videoCount + ' Video (' + fmtBytes(videoBytes) + ')';
+    if(pVoice) pVoice.textContent = voiceCount + ' Audio (' + fmtBytes(voiceBytes) + ')';
   }
 
   async function handleRangeDownload(){
@@ -3599,6 +3870,7 @@
     if(name === 'rekap'){ ensureRekapLoaded(); }
     if(name === 'kamus'){ ensureKamusLoaded(); }
     if(name === 'ringkasan'){ scrollCalendarToToday(true); }
+    if(name === 'cloud'){ updateStorageIndicator(); }
     try{ localStorage.setItem('latih_active_tab', name); }catch(e){}
   }
   topTabs.forEach(function(b){ b.addEventListener('click', function(){ goTo(b.dataset.tab); }); });
