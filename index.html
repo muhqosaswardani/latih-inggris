@@ -1223,7 +1223,7 @@
       <button id="installBtn" class="mark-btn" type="button" aria-label="Instal App">
         <span class="mark">LATIH</span>
       </button>
-      <span class="ver-tag" id="verTag">v1.5.2</span>
+      <span class="ver-tag" id="verTag">v1.5.3</span>
       <span class="sub">log praktik harian</span>
     </div>
     <div class="streak-widget">
@@ -1974,7 +1974,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.5.2'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.5.3'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -2248,6 +2248,98 @@
       console.warn('Gagal pull cloud:', err.message);
       setCloudBadge('err', 'Mode Offline');
       setExportStatus('Mode offline: data lokal aktif.');
+    }
+  }
+
+  var isBackfilling = false;
+
+  async function cloudBackfillAll(force){
+    if(!PROXY_URL || isBackfilling) return;
+    if(!force){
+      var done = false;
+      try{ done = localStorage.getItem('latih_backfill_v1_done') === 'true'; }catch(e){}
+      if(done) return;
+    }
+
+    isBackfilling = true;
+    try{
+      // 1. Ambil semua data dari IndexedDB lokal
+      var ketikArr = await idbAll('ketik');
+      var voiceArr = await idbAll('voice');
+      var videoArr = await idbAll('video');
+      var bacaArr = await idbAll('baca');
+      var kamusArr = await idbAll('kamus');
+      var kamusExArr = await idbAll('kamusExclude');
+
+      var totalLocal = ketikArr.length + voiceArr.length + videoArr.length +
+                       bacaArr.length + kamusArr.length + kamusExArr.length;
+
+      if(totalLocal === 0){
+        try{ localStorage.setItem('latih_backfill_v1_done', 'true'); }catch(e){}
+        isBackfilling = false;
+        return;
+      }
+
+      setCloudBadge('syncing', 'Backfill ' + totalLocal + ' data...');
+      setExportStatus('Menyiapkan ' + totalLocal + ' data lokal untuk diunggah ke cloud...');
+
+      // 2. Upload file blob mentah untuk voice & video yang belum diunggah ke KV
+      var mediaToUpload = [];
+      voiceArr.forEach(function(e){
+        if(e.audioBlob && (!e.blob_key || force)) mediaToUpload.push({ id: e.id, blob: e.audioBlob, type: e.mimeType || 'audio/webm', scope: 'voice', entry: e });
+      });
+      videoArr.forEach(function(e){
+        if(e.videoBlob && (!e.blob_key || force)) mediaToUpload.push({ id: e.id, blob: e.videoBlob, type: e.mimeType || 'video/webm', scope: 'video', entry: e });
+      });
+
+      if(mediaToUpload.length > 0){
+        for(var m = 0; m < mediaToUpload.length; m++){
+          var item = mediaToUpload[m];
+          setCloudBadge('syncing', 'Media (' + (m + 1) + '/' + mediaToUpload.length + ')...');
+          setExportStatus('Mengunggah file media (' + (m + 1) + ' dari ' + mediaToUpload.length + ')...');
+          await uploadBlobToCloud(item.id, item.blob);
+          if(!item.entry.blob_key){
+            item.entry.blob_key = item.id;
+            await idbPut(item.scope, item.entry);
+          }
+        }
+      }
+
+      // 3. Siapkan payload teks tanpa binary blob
+      var cleanKetik = ketikArr.map(function(e){ return stripBlobForCloud(e); });
+      var cleanVoice = voiceArr.map(function(e){ return stripBlobForCloud(e); });
+      var cleanVideo = videoArr.map(function(e){ return stripBlobForCloud(e); });
+      var cleanBaca = bacaArr.map(function(e){ return stripBlobForCloud(e); });
+
+      setCloudBadge('syncing', 'Mendorong ' + totalLocal + ' entri...');
+      setExportStatus('Mendorong data teks ke Cloudflare D1...');
+
+      var payload = {
+        ketik: cleanKetik,
+        voice: cleanVoice,
+        video: cleanVideo,
+        baca: cleanBaca,
+        kamus: kamusArr,
+        kamusExclude: kamusExArr
+      };
+
+      var res = await fetch(PROXY_URL + '/sync/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+
+      try{ localStorage.setItem('latih_backfill_v1_done', 'true'); }catch(e){}
+      setCloudBadge('ok', 'Cloud Tersinkron');
+      setExportStatus('Backfill selesai: ' + totalLocal + ' entri lokal berhasil disinkronkan ke cloud.');
+    }catch(err){
+      console.warn('Gagal backfill cloud:', err);
+      setCloudBadge('err', 'Sync Tertunda');
+      setExportStatus('Sync cloud tertunda: ' + err.message);
+    }finally{
+      isBackfilling = false;
     }
   }
 
@@ -2791,9 +2883,19 @@
     }
   }
 
-  // Event Listeners Sync, Range, dan Backup
   var btnSyncNow = document.getElementById('btnSyncNow');
-  if(btnSyncNow) btnSyncNow.addEventListener('click', function(){ cloudPullAndMerge(); flushCloudPush(); });
+  if(btnSyncNow) btnSyncNow.addEventListener('click', async function(){
+    btnSyncNow.disabled = true;
+    try{
+      await cloudPullAndMerge();
+      await flushCloudPush();
+      await cloudBackfillAll(true);
+    }catch(err){
+      console.warn('Sync error:', err);
+    }finally{
+      btnSyncNow.disabled = false;
+    }
+  });
 
   var btnDownRange = document.getElementById('btnDownloadRange');
   if(btnDownRange) btnDownRange.addEventListener('click', handleRangeDownload);
@@ -5035,8 +5137,10 @@
     initCustomControls();
     applyDatePreset('30d');
 
-    // Tarik & gabungkan data terbaru dari Cloudflare D1 & KV
-    cloudPullAndMerge();
+    // Tarik & gabungkan data terbaru dari Cloudflare D1 & KV, lalu jalankan backfill otomatis 1x di background
+    cloudPullAndMerge().then(function(){
+      setTimeout(function(){ cloudBackfillAll(false); }, 1200);
+    });
 
     scheduleMidnightRekapRefresh();
   }
