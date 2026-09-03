@@ -177,8 +177,103 @@ export default {
 
     // ===================================================================
     // 2. ENDPOINTS SINKRONISASI TEKS (D1 Database: env.DB)
-    // /sync/push, /sync/pull, /sync/delete
+    // /sync/push, /sync/pull, /sync/delete, /admin/migrate
     // ===================================================================
+    const SCHEMA_SQL = `
+CREATE TABLE IF NOT EXISTS ketik (
+  id TEXT PRIMARY KEY,
+  ts INTEGER NOT NULL,
+  text TEXT,
+  diffs TEXT,
+  corrections TEXT,
+  note TEXT,
+  translation TEXT,
+  correctedSentence TEXT,
+  status TEXT,
+  meta TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_ketik_ts ON ketik(ts);
+
+CREATE TABLE IF NOT EXISTS voice (
+  id TEXT PRIMARY KEY,
+  ts INTEGER NOT NULL,
+  blob_key TEXT,
+  mimeType TEXT,
+  sentence TEXT,
+  correctedSentence TEXT,
+  wordTags TEXT,
+  meaning TEXT,
+  pron TEXT,
+  translation TEXT,
+  status TEXT,
+  meta TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_voice_ts ON voice(ts);
+
+CREATE TABLE IF NOT EXISTS video (
+  id TEXT PRIMARY KEY,
+  ts INTEGER NOT NULL,
+  blob_key TEXT,
+  mimeType TEXT,
+  thumb TEXT,
+  duration TEXT,
+  topic TEXT,
+  sentence TEXT,
+  correctedSentence TEXT,
+  wordTags TEXT,
+  meaning TEXT,
+  pron TEXT,
+  translation TEXT,
+  status TEXT,
+  meta TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_video_ts ON video(ts);
+
+CREATE TABLE IF NOT EXISTS baca (
+  id TEXT PRIMARY KEY,
+  ts INTEGER NOT NULL,
+  kind TEXT,
+  query TEXT,
+  title TEXT,
+  titleId TEXT,
+  paragraphs TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_baca_ts ON baca(ts);
+
+CREATE TABLE IF NOT EXISTS kamus (
+  word TEXT PRIMARY KEY,
+  translation TEXT,
+  ts INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_kamus_ts ON kamus(ts);
+
+CREATE TABLE IF NOT EXISTS kamus_exclude (
+  word TEXT PRIMARY KEY,
+  ts INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_kamus_exclude_ts ON kamus_exclude(ts);
+    `;
+
+    async function ensureSchema(db) {
+      try {
+        await db.exec(SCHEMA_SQL);
+      } catch (err) {
+        console.error('ensureSchema error:', err.message);
+      }
+    }
+
+    if (path === '/admin/migrate') {
+      if (!env.DB) {
+        return jsonResponse({ error: 'Binding DB (D1) belum terkonfigurasi di Worker.' }, 500);
+      }
+      try {
+        await env.DB.exec(SCHEMA_SQL);
+        return jsonResponse({ ok: true, message: 'D1 schema migration berhasil dieksekusi ke database!' });
+      } catch (e) {
+        return jsonResponse({ error: 'Gagal eksekusi migrasi D1: ' + e.message }, 500);
+      }
+    }
+
     if (path === '/sync/push') {
       if (request.method !== 'POST') {
         return jsonResponse({ error: 'Method not allowed, pakai POST untuk /sync/push.' }, 405);
@@ -186,6 +281,7 @@ export default {
       if (!env.DB) {
         return jsonResponse({ error: 'Binding DB (D1) belum terkonfigurasi di Worker.' }, 500);
       }
+      await ensureSchema(env.DB);
 
       let body;
       try {
@@ -346,6 +442,7 @@ export default {
       if (!env.DB) {
         return jsonResponse({ error: 'Binding DB (D1) belum terkonfigurasi di Worker.' }, 500);
       }
+      await ensureSchema(env.DB);
 
       try {
         const [kRes, vRes, vdRes, bRes, kmRes, kxRes] = await env.DB.batch([
@@ -403,6 +500,7 @@ export default {
       if (!env.DB) {
         return jsonResponse({ error: 'Binding DB (D1) belum terkonfigurasi di Worker.' }, 500);
       }
+      await ensureSchema(env.DB);
 
       let body;
       try {
