@@ -1815,6 +1815,24 @@
         </div>
       </div>
 
+      <!-- HASIL ANALISIS VIDEO (tampil setelah rekam, sebelum simpan ke riwayat) -->
+      <div id="videoResultPanel" style="display:none;" class="card" style="margin-top:16px; width:100%; text-align:left;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <span class="eyebrow">Hasil Rekaman</span>
+          <span id="videoResultStatusBadge"></span>
+        </div>
+        <video id="videoResultPlayer" controls playsinline style="width:100%; border-radius:10px; background:#000; margin-bottom:12px; display:block;"></video>
+        <div class="vr-row"><div class="k">Transkrip</div><div class="v" id="videoResultTranscript"></div></div>
+        <div class="vr-row"><div class="k">Ketepatan ucap</div><div class="v" id="videoResultWordTags"></div></div>
+        <div class="vr-row"><div class="k">Kalimat yang benar</div><div class="v" id="videoResultCorrected"></div></div>
+        <div class="vr-row" id="videoResultMeaningRow" style="display:none;"><div class="k">Catatan</div><div class="v" id="videoResultMeaning"></div></div>
+        <div class="vr-row"><div class="k">Arti</div><div class="v" id="videoResultTranslation"></div></div>
+        <div style="display:flex; gap:10px; margin-top:16px;">
+          <button type="button" class="btn btn-primary" id="btnSaveVideoResult" style="flex:1;">✓ Simpan ke Riwayat</button>
+          <button type="button" class="btn btn-ghost" id="btnRetakeVideo" style="flex:1;">↺ Rekam Ulang</button>
+        </div>
+      </div>
+
       <div class="panel-head" style="margin-top:28px;">
         <span class="eyebrow">14 hari terakhir</span>
         <h2 style="font-size:15px;">Jejak video harian - tap hari yang "selesai" untuk putar ulang</h2>
@@ -2074,7 +2092,7 @@
   // INDEXEDDB - penyimpanan lokal (persist antar reload, termasuk blob audio/video)
   // ==================================================================
   var DB_NAME = 'latihDB', DB_VERSION = 7;
-  var APP_VERSION = 'v1.5.6'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
+  var APP_VERSION = 'v1.5.7'; // naikkan tiap kali ada perubahan ke index.html, lalu commit bareng
   (function(){
     var vt = document.getElementById('verTag');
     if(vt) vt.textContent = APP_VERSION;
@@ -4538,6 +4556,49 @@
     return { blob: audioBufferToWavBlob(rendered), peak: peak };
   }
 
+  // Variabel untuk menyimpan entry sementara sebelum user konfirmasi simpan
+  var pendingVideoEntry = null;
+  var pendingVideoObjectUrl = null;
+
+  function showVideoResultPanel(entry){
+    pendingVideoEntry = entry;
+    var panel = document.getElementById('videoResultPanel');
+    var player = document.getElementById('videoResultPlayer');
+    // Revoke URL lama kalau ada
+    if(pendingVideoObjectUrl){ URL.revokeObjectURL(pendingVideoObjectUrl); pendingVideoObjectUrl = null; }
+    if(entry.videoBlob){
+      pendingVideoObjectUrl = URL.createObjectURL(entry.videoBlob);
+      player.src = pendingVideoObjectUrl;
+      player.load();
+    }
+    document.getElementById('videoResultStatusBadge').innerHTML = entry.status === 'ok'
+      ? '<span class="sheet-status ok">tidak ada koreksi</span>'
+      : '<span class="sheet-status err">ada koreksi</span>';
+    document.getElementById('videoResultTranscript').textContent = '"' + (entry.sentence || '') + '"';
+    document.getElementById('videoResultWordTags').innerHTML = wordTagsHtml(entry.wordTags);
+    document.getElementById('videoResultCorrected').innerHTML = '"' + escapeHtml(entry.correctedSentence || entry.sentence) + '"' + speakBtnHtml(entry.correctedSentence || entry.sentence);
+    document.getElementById('videoResultTranslation').textContent = entry.translation || '';
+    var meaningRow = document.getElementById('videoResultMeaningRow');
+    if(entry.meaning && entry.meaning.length){
+      document.getElementById('videoResultMeaning').innerHTML = entry.meaning.map(function(m){ return '<b>'+escapeHtml(m.title)+'</b>: '+escapeHtml(m.detail); }).join('<br>');
+      meaningRow.style.display = '';
+    } else { meaningRow.style.display = 'none'; }
+    panel.style.display = 'block';
+    setTimeout(function(){
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  }
+
+  function hideVideoResultPanel(){
+    var panel = document.getElementById('videoResultPanel');
+    var player = document.getElementById('videoResultPlayer');
+    player.pause();
+    player.src = '';
+    if(pendingVideoObjectUrl){ URL.revokeObjectURL(pendingVideoObjectUrl); pendingVideoObjectUrl = null; }
+    pendingVideoEntry = null;
+    panel.style.display = 'none';
+  }
+
   async function processVideoBlob(blob){
     if(blob.size > 80 * 1024 * 1024){
       document.getElementById('videoErrorText').textContent = 'Video terlalu besar (maks ~80MB). Coba rekam lebih singkat.';
@@ -4584,16 +4645,8 @@
         meta: result.meta || 'selesai dianalisis'
       };
       entry.blob_key = entry.id;
-      uploadBlobToCloud(entry.id, blob);
-      await idbPut('video', entry);
-      scheduleCloudPush('video', entry);
-      VIDEO.unshift(entry);
-      renderVideoLists();
-      renderCalendar();
-      renderHeader();
-      prefetchTtsCache([entry.correctedSentence].concat((entry.pron||[]).map(function(p){ return p.word; })));
-      document.getElementById('videoTodayLabel').textContent = 'Video hari ini sudah diisi \u2713';
-      document.getElementById('videoTodayNote').textContent = 'Topik: ' + entry.topic + ' \u00b7 ' + entry.duration;
+      // TAMPILKAN HASIL DULU - jangan langsung simpan ke riwayat
+      showVideoResultPanel(entry);
     }catch(err){
       document.getElementById('videoErrorText').textContent = err.message;
       videoErrorBox.style.display = 'block';
@@ -4616,6 +4669,10 @@
       camChunks = [];
       videoPreview.srcObject = camStream;
       videoPreviewWrap.style.display = 'block';
+      // Auto-scroll ke area rekaman
+      setTimeout(function(){
+        videoPreviewWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 80);
       btnWebcamLabel.textContent = 'Berhenti merekam';
       videoErrorBox.style.display = 'none';
       camRecorder = new MediaRecorder(camStream);
@@ -4641,6 +4698,35 @@
     var file = videoFileInput.files[0];
     videoFileInput.value = '';
     if(file) processVideoBlob(file);
+  });
+
+  // Tombol Simpan ke Riwayat (dari result panel)
+  document.getElementById('btnSaveVideoResult').addEventListener('click', async function(){
+    if(!pendingVideoEntry) return;
+    var entry = pendingVideoEntry;
+    hideVideoResultPanel();
+    videoLoading.classList.add('show');
+    try{
+      uploadBlobToCloud(entry.id, entry.videoBlob);
+      await idbPut('video', entry);
+      scheduleCloudPush('video', entry);
+      VIDEO.unshift(entry);
+      renderVideoLists();
+      renderCalendar();
+      renderHeader();
+      prefetchTtsCache([entry.correctedSentence].concat((entry.pron||[]).map(function(p){ return p.word; })));
+      document.getElementById('videoTodayLabel').textContent = 'Video hari ini sudah diisi \u2713';
+      document.getElementById('videoTodayNote').textContent = 'Topik: ' + entry.topic + ' \u00b7 ' + entry.duration;
+    } finally {
+      videoLoading.classList.remove('show');
+    }
+  });
+
+  // Tombol Rekam Ulang (dari result panel)
+  document.getElementById('btnRetakeVideo').addEventListener('click', function(){
+    hideVideoResultPanel();
+    document.getElementById('videoTodayLabel').textContent = 'Video hari ini belum diisi';
+    document.getElementById('videoTodayNote').textContent = 'Belum diisi akan tercatat "belum" di rekap harian.';
   });
 
   function renderVideoCard(e, idx){
@@ -4761,15 +4847,24 @@
         videoSrc = PROXY_URL + '/blob/' + encodeURIComponent(e.blob_key || e.id);
       }
       html = statusLabel(e.status) +
-        (videoSrc ? '<video controls style="width:100%; border-radius:12px; margin-top:10px; background:#000;" src="'+videoSrc+'"></video>' : '<div class="sync-hint" style="margin-top:8px;">Video tidak tersedia.</div>') +
+        (videoSrc ? '<video id="sheetVideoPlayer" controls playsinline preload="auto" style="width:100%; border-radius:12px; margin-top:10px; background:#000;"></video>' : '<div class="sync-hint" style="margin-top:8px;">Video tidak tersedia.</div>') +
         '<div class="vr-row"><div class="k">Transkrip</div><div class="v">"'+escapeHtml(e.sentence)+'"</div></div>' +
         '<div class="vr-row"><div class="k">Ketepatan ucap</div><div class="v">'+wordTagsHtml(e.wordTags)+'</div></div>' +
         '<div class="vr-row"><div class="k">Kalimat yang benar</div><div class="v">"'+escapeHtml(e.correctedSentence || e.sentence)+'"'+speakBtnHtml(e.correctedSentence || e.sentence)+'</div></div>' +
-        '<div class="panel-head sheet-section-label"><span class="eyebrow">Tata bahasa & makna</span></div>' +
+        '<div class="panel-head sheet-section-label"><span class="eyebrow">Tata bahasa &amp; makna</span></div>' +
         corrCardsHtml(e.meaning, 'Hasil', 'Tidak ada kesalahan makna - kalimat sudah tepat.') +
         pronCardsHtml(e.pron) +
         '<div class="vr-row" style="margin-top:14px;"><div class="k">Arti kalimat</div><div class="v">'+escapeHtml(e.translation)+'</div></div>' +
         sheetActionsHtml;
+      // Set src imperatively setelah innerHTML di-set
+      if(videoSrc){
+        // Defer sampai setelah innerHTML selesai dirender
+        var _vSrc = videoSrc;
+        setTimeout(function(){
+          var vEl = document.getElementById('sheetVideoPlayer');
+          if(vEl){ vEl.src = _vSrc; vEl.load(); }
+        }, 0);
+      }
     } else if(scope === 'baca'){
       var e = BACA[idx];
       eyebrow = 'Riwayat \u00b7 ' + bacaKindInfo(e).label;
@@ -4793,6 +4888,10 @@
     }
   }
   function closeDetail(fromPopstate){
+    // Pause semua media dalam sheet sebelum menutup (fix audio tetap jalan di belakang)
+    sheetBody.querySelectorAll('video, audio').forEach(function(el){
+      try{ el.pause(); el.src = ''; el.load(); }catch(e){}
+    });
     overlay.classList.remove('show');
     document.body.style.overflow = '';
     if(activeObjectUrl){ URL.revokeObjectURL(activeObjectUrl); activeObjectUrl = null; }

@@ -3,7 +3,7 @@
 // Data/API request (POST ke Worker Gemini) SENGAJA tidak di-cache di sini.
 
 const APP_VERSION = 'v1.5.6';
-const CACHE_NAME = 'latih-shell-' + APP_VERSION;
+const CACHE_NAME = 'latih-shell-v1.5.7';
 const APP_SHELL = [
   './',
   './index.html',
